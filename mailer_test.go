@@ -75,7 +75,7 @@ func TestMailer_Send(t *testing.T) {
 	)
 	require.NoError(t, err)
 
-	mailMailer := mailer.New(client)
+	mailMailer := mailer.New(client, mailer.WithFrom("noreply@example.com"))
 
 	tests := []struct {
 		name        string
@@ -147,6 +147,18 @@ func TestMailer_Send(t *testing.T) {
 			}(),
 			wantErr:     true,
 			errContains: "message must have a subject",
+		},
+		{
+			name: "return errors when from email is invalid",
+			message: func() *mailer.Message {
+				msg := mailer.NewMessage().
+					To("recipient@example.com").
+					From("invalid-email").
+					Subject("Test Subject")
+				return msg
+			}(),
+			wantErr:     true,
+			errContains: "failed to parse mail address",
 		},
 		{
 			name: "returns error when recipient email is invalid",

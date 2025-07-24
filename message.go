@@ -76,6 +76,7 @@ func (m *Message) Subject(subject string) *Message {
 	return m
 }
 
+// From sets the sender's address of the email message.
 func (m *Message) From(address string, name ...string) *Message {
 	if m.from == nil {
 		m.from = &Address{}

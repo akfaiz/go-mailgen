@@ -73,12 +73,10 @@ func (m *Mailer) toMailMsg(message *Message) (*mail.Msg, error) {
 			return nil, err
 		}
 	}
-	if m.cfg.replyTo != "" || message.GetReplyTo() != "" {
-		if message.GetReplyTo() != "" {
-			msg.ReplyTo(message.GetReplyTo())
-		} else {
-			msg.ReplyTo(m.cfg.replyTo)
-		}
+	if message.GetReplyTo() != "" {
+		msg.ReplyTo(message.GetReplyTo())
+	} else if m.cfg.replyTo != "" {
+		msg.ReplyTo(m.cfg.replyTo)
 	}
 
 	msg.Subject(message.GetSubject())
