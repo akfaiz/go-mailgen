@@ -1,7 +1,6 @@
 package mailer_test
 
 import (
-	"fmt"
 	"testing"
 	"time"
 
@@ -157,7 +156,6 @@ func TestMessage_GenerateHTML(t *testing.T) {
 
 	assert.NotEmpty(t, html)
 	assert.Contains(t, html, "<html")
-	fmt.Println(html) // For debugging purposes, can be removed later
 }
 
 func TestMessage_GeneratePlaintext(t *testing.T) {

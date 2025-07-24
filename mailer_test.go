@@ -36,6 +36,7 @@ func TestNew(t *testing.T) {
 					Name: "Test Product",
 					URL:  "https://example.com",
 				}),
+				mailer.WithReplyTo("reply@example.com"),
 			},
 			wantNil: false,
 		},
@@ -85,7 +86,7 @@ func TestMailer_Send(t *testing.T) {
 	)
 	require.NoError(t, err)
 
-	mailMailer := mailer.New(client, mailer.WithFrom("noreply@example.com"))
+	mailMailer := mailer.New(client, mailer.WithFrom("noreply@example.com", "No Reply"))
 
 	tests := []struct {
 		name        string
@@ -303,6 +304,18 @@ func TestMailer_Send(t *testing.T) {
 			}(),
 			wantErr:     true,
 			errContains: "failed to parse mail address",
+		},
+		{
+			name: "return errors when reply-to email is invalid",
+			message: func() *mailer.Message {
+				msg := mailer.NewMessage().
+					To("recipient@example.com").
+					ReplyTo("invalid-email").
+					Subject("Test Subject")
+				return msg
+			}(),
+			wantErr:     true,
+			errContains: "failed to parse reply-to address",
 		},
 		{
 			name: "return errors when attachment embedded file is not found",

@@ -14,6 +14,7 @@ Go-Mailer is a Go library that wraps the [wneessen/go-mail](https://github.com/w
 - Attachment Support: Easily attach files from local disk, embedded filesystems, IOFS filesystems, or `io.Reader`/`io.ReadSeeker`.
 - Customizable Email Content: Allows setting greetings, salutations, and product information for a personalized experience.
 - Responsive HTML Template: Automatically formats emails with a clean, responsive design compatible with most email clients.
+- CSS-inlined HTML: Automatically inlines CSS styles for better compatibility with email clients that strip out `<style>` tags.
 
 ## Installation
 To install Go-Mailer, run the following command:

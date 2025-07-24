@@ -1,6 +1,6 @@
 COVERAGE_FILE := coverage.out
 COVERAGE_HTML := coverage.html
-MIN_COVERAGE  := 80
+MIN_COVERAGE  := 90
 
 # Format code
 .PHONY: fmt

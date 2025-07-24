@@ -203,28 +203,40 @@ func (m *Message) AttachFile(name string, opts ...FileOption) *Message {
 // AttachFromEmbedFS attaches a file from an embedded filesystem to the email message.
 // The file is specified by its name and the embedded filesystem, along with additional options for configuration
 func (m *Message) AttachFromEmbedFS(name string, fs *embed.FS, opts ...FileOption) *Message {
-	m.filesEmbedFS = append(m.filesEmbedFS, fileEmbedFS{file{name: name, cfg: newFileConfig(opts...)}, fs})
+	m.filesEmbedFS = append(m.filesEmbedFS, fileEmbedFS{
+		file: file{name: name, cfg: newFileConfig(opts...)},
+		fs:   fs,
+	})
 	return m
 }
 
 // AttachFromIOFS attaches a file from an IOFS filesystem to the email message.
 // The file is specified by its name and the IOFS filesystem, along with additional options for configuration.
 func (m *Message) AttachFromIOFS(name string, fs fs.FS, opts ...FileOption) *Message {
-	m.filesIOFS = append(m.filesIOFS, fileIOFS{file: file{name: name, cfg: newFileConfig(opts...)}, FS: fs})
+	m.filesIOFS = append(m.filesIOFS, fileIOFS{
+		file: file{name: name, cfg: newFileConfig(opts...)},
+		FS:   fs,
+	})
 	return m
 }
 
 // AttachReader attaches a file from an io.Reader to the email message.
 // The file is specified by its name and the reader, along with additional options for configuration.
 func (m *Message) AttachReader(name string, reader io.Reader, opts ...FileOption) *Message {
-	m.filesReader = append(m.filesReader, fileReader{file: file{name: name, cfg: newFileConfig(opts...)}, Reader: reader})
+	m.filesReader = append(m.filesReader, fileReader{
+		file:   file{name: name, cfg: newFileConfig(opts...)},
+		Reader: reader,
+	})
 	return m
 }
 
 // AttachReadSeeker attaches a file from an io.ReadSeeker to the email message.
 // The file is specified by its name and the read seeker, along with additional options for configuration.
 func (m *Message) AttachReadSeeker(name string, readSeeker io.ReadSeeker, opts ...FileOption) *Message {
-	m.filesReadSeeker = append(m.filesReadSeeker, fileReadSeeker{file: file{name: name, cfg: newFileConfig(opts...)}, ReadSeeker: readSeeker})
+	m.filesReadSeeker = append(m.filesReadSeeker, fileReadSeeker{
+		file:       file{name: name, cfg: newFileConfig(opts...)},
+		ReadSeeker: readSeeker,
+	})
 	return m
 }
 
@@ -238,13 +250,13 @@ type templateData struct {
 }
 
 //go:embed templates/default/*
-var defaultTemplateFS embed.FS
+var defaultTmplFS embed.FS
 
 //go:embed templates/plaintext/*
-var plaintextTemplateFS embed.FS
+var plaintextTmplFS embed.FS
 
-var defaultTmpl = htmltemplate.Must(htmltemplate.New("message.html").ParseFS(defaultTemplateFS, "templates/default/*.html"))
-var plaintextTmpl = texttemplate.Must(texttemplate.New("message.txt").ParseFS(plaintextTemplateFS, "templates/plaintext/*.txt"))
+var defaultTmpl = htmltemplate.Must(htmltemplate.New("message.html").ParseFS(defaultTmplFS, "templates/default/*.html"))
+var plaintextTmpl = texttemplate.Must(texttemplate.New("message.txt").ParseFS(plaintextTmplFS, "templates/plaintext/*.txt"))
 
 // GenerateHTML generates the HTML content for the email message using the provided template.
 func (m *Message) GenerateHTML() (string, error) {
