@@ -1,20 +1,21 @@
 package mailer
 
 type config struct {
-	fromName    string
-	fromAddress string
-	replyTo     string
-	product     Product
+	from    Address
+	replyTo string
+	product Product
 }
 
 // Option defines a function type that can be used to configure the Mailer.
 type Option func(*config)
 
 // WithFrom sets the sender's name and address for the email messages sent by the Mailer.
-func WithFrom(name, address string) Option {
+func WithFrom(address string, name ...string) Option {
 	return func(c *config) {
-		c.fromName = name
-		c.fromAddress = address
+		c.from.Address = address
+		if len(name) > 0 {
+			c.from.Name = name[0]
+		}
 	}
 }
 
@@ -34,8 +35,6 @@ func WithReplyTo(replyTo string) Option {
 
 func newConfig(opts ...Option) *config {
 	cfg := &config{
-		fromName:    "GoMailer",
-		fromAddress: "noreply@example.com",
 		product: Product{
 			Name: "GoMailer",
 			URL:  "https://github.com/ahmadfaizk/go-mailer",

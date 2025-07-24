@@ -17,10 +17,25 @@ type Product struct {
 	Copyright string
 }
 
+// Address represents an email address with an optional name.
+type Address struct {
+	Name    string
+	Address string
+}
+
+func (a Address) String() string {
+	if a.Name == "" {
+		return a.Address
+	}
+	return fmt.Sprintf("%s <%s>", a.Name, a.Address)
+}
+
 // Message represents an email message with various fields such as subject, recipients, and content.
 // It provides methods to set these fields and generate the HTML content for the email.
 type Message struct {
 	subject string
+	from    *Address
+	replyTo string
 	to      []string
 	cc      []string
 	bcc     []string
@@ -38,13 +53,12 @@ type Message struct {
 //
 // Example usage:
 //
-//	html, err := gomailer.NewMessage().
+//	messsage := mailer.NewMessage().
 //		Subject("Reset Password").
 //		To("recipient@example.com").
 //		Line("Click the button below to reset your password").
 //		Action("Reset Password", "https://example.com/reset-password").
-//		Line("If you did not request this, please ignore this email").
-//		GenerateHTML()
+//		Line("If you did not request this, please ignore this email")
 func NewMessage() *Message {
 	m := &Message{}
 
@@ -59,6 +73,23 @@ func NewMessage() *Message {
 // Subject sets the subject of the email message.
 func (m *Message) Subject(subject string) *Message {
 	m.subject = subject
+	return m
+}
+
+func (m *Message) From(address string, name ...string) *Message {
+	if m.from == nil {
+		m.from = &Address{}
+	}
+	m.from.Address = address
+	if len(name) > 0 {
+		m.from.Name = name[0]
+	}
+	return m
+}
+
+// ReplyTo sets the reply-to address for the email message.
+func (m *Message) ReplyTo(replyTo string) *Message {
+	m.replyTo = replyTo
 	return m
 }
 
@@ -179,9 +210,19 @@ func (m *Message) GetSubject() string {
 	return m.subject
 }
 
+// GetFrom returns the sender's address of the email message.
+func (m *Message) GetFrom() *Address {
+	return m.from
+}
+
 // GetTo returns the recipient(s) of the email message.
 func (m *Message) GetTo() []string {
 	return m.to
+}
+
+// GetReplyTo returns the reply-to address of the email message.
+func (m *Message) GetReplyTo() string {
+	return m.replyTo
 }
 
 // GetCc returns the carbon copy (CC) recipients of the email message.

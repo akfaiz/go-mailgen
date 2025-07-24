@@ -42,11 +42,7 @@ func main() {
 
     // Initialize the Go-Mailer instance with the existing client
     m := mailer.New(client,
-        mailer.WithFrom("Go Mailer", "noreply@example.com"),
-        mailer.WithProduct(mailer.Product{
-            Name: "Go Mailer",
-            URL: "https://github.com/ahmadfaizk/go-mailer",
-        })
+        mailer.WithFrom("noreply@example.com")
     )
 
     // Build an HTML email using the fluent message builder
@@ -107,7 +103,7 @@ if err != nil {
 }
 
 m := mailer.New(client,
-    mailer.WithFrom("Go Mailer", "noreply@example.com"),
+    mailer.WithFrom("noreply@example.com"),
     mailer.WithReplyTo("support@example.com"),
     mailer.WithProduct(mailer.Product{
         Name: "Go Mailer",

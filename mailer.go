@@ -3,7 +3,6 @@ package mailer
 import (
 	"context"
 	"errors"
-	"fmt"
 
 	"github.com/wneessen/go-mail"
 )
@@ -52,7 +51,13 @@ func (m *Mailer) toMailMsg(message *Message) (*mail.Msg, error) {
 	}
 
 	msg := mail.NewMsg()
-	if err := msg.From(m.from()); err != nil {
+
+	from := m.cfg.from
+	if message.GetFrom() != nil {
+		from = *message.GetFrom()
+	}
+
+	if err := msg.From(from.String()); err != nil {
 		return nil, err
 	}
 	if err := msg.To(message.GetTo()...); err != nil {
@@ -68,20 +73,16 @@ func (m *Mailer) toMailMsg(message *Message) (*mail.Msg, error) {
 			return nil, err
 		}
 	}
-	if m.cfg.replyTo != "" {
-		if err := msg.ReplyTo(m.cfg.replyTo); err != nil {
-			return nil, err
+	if m.cfg.replyTo != "" || message.GetReplyTo() != "" {
+		if message.GetReplyTo() != "" {
+			msg.ReplyTo(message.GetReplyTo())
+		} else {
+			msg.ReplyTo(m.cfg.replyTo)
 		}
 	}
+
 	msg.Subject(message.GetSubject())
 	msg.SetBodyString(mail.TypeTextHTML, html)
 
 	return msg, nil
-}
-
-func (m *Mailer) from() string {
-	if m.cfg.fromName == "" {
-		return m.cfg.fromAddress
-	}
-	return fmt.Sprintf("%s <%s>", m.cfg.fromName, m.cfg.fromAddress)
 }
