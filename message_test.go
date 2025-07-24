@@ -164,6 +164,32 @@ func TestMessage_GenerateHTML(t *testing.T) {
 	assert.Contains(t, plainHtml, "You are receiving this email because we received a password reset request for your account.")
 }
 
+func TestMessage_GenerateHTMLWithTable(t *testing.T) {
+	msg := mailer.NewMessage().
+		Subject("Order Confirmation").
+		Line("Thank you for your order!").
+		Table(mailer.Table{
+			Instruction: "Here are the details of your order:",
+			Headers: []mailer.TableHeader{
+				{Text: "Item", Align: "left", Width: "70%"},
+				{Text: "Price", Align: "right", Width: "30%"},
+			},
+			Rows: [][]string{
+				{"Widget A", "$10.00"},
+				{"Widget B", "$15.00"},
+			},
+		}).
+		Action("View Order", "https://example.com/order", mailer.Action{Instruction: "Click here to view your order"}).
+		Line("If you have any questions, feel free to contact us.")
+
+	html, err := msg.GenerateHTML()
+	require.NoError(t, err)
+
+	assert.Contains(t, html, "<table")
+	assert.Contains(t, html, "Widget A")
+	assert.Contains(t, html, "$10.00")
+}
+
 func TestMessage_GeneratePlaintext(t *testing.T) {
 	msg := mailer.NewMessage().
 		Subject("Reset Password Notification").
@@ -177,4 +203,127 @@ func TestMessage_GeneratePlaintext(t *testing.T) {
 
 	assert.NotEmpty(t, plaintext)
 	assert.Contains(t, plaintext, "You are receiving this email because we received a password reset request for your account.")
+}
+
+func TestMessage_GeneratePlaintextWithTable(t *testing.T) {
+	msg := mailer.NewMessage().
+		Subject("Order Confirmation").
+		Line("Thank you for your order!").
+		Table(mailer.Table{
+			Instruction: "Here are the details of your order:",
+			Headers: []mailer.TableHeader{
+				{Text: "Item", Align: "left", Width: "70%"},
+				{Text: "Price", Align: "right", Width: "30%"},
+			},
+			Rows: [][]string{
+				{"Widget A", "$10.00"},
+				{"Widget B", "$15.00"},
+			},
+		}).
+		Action("View Order", "https://example.com/order", mailer.Action{Instruction: "Click here to view your order"}).
+		Line("If you have any questions, feel free to contact us.")
+
+	plaintext, err := msg.GeneratePlaintext()
+	require.NoError(t, err)
+
+	assert.Contains(t, plaintext, "Widget A")
+	assert.Contains(t, plaintext, "$10.00")
+}
+
+func TestTable_String(t *testing.T) {
+	tests := []struct {
+		name     string
+		table    mailer.Table
+		expected string
+	}{
+		{
+			name: "simple table without instruction",
+			table: mailer.Table{
+				Headers: []mailer.TableHeader{
+					{Text: "Name", Align: "left"},
+					{Text: "Age", Align: "right"},
+				},
+				Rows: [][]string{
+					{"John", "25"},
+					{"Jane", "30"},
+				},
+			},
+			expected: "Name | Age\n-----+----\nJohn |  25\nJane |  30\n",
+		},
+		{
+			name: "table with instruction",
+			table: mailer.Table{
+				Instruction: "Employee Information:",
+				Headers: []mailer.TableHeader{
+					{Text: "Name", Align: "left"},
+					{Text: "Age", Align: "right"},
+				},
+				Rows: [][]string{
+					{"John", "25"},
+					{"Jane", "30"},
+				},
+			},
+			expected: "Employee Information:\n\nName | Age\n-----+----\nJohn |  25\nJane |  30\n",
+		},
+		{
+			name: "table with center alignment",
+			table: mailer.Table{
+				Headers: []mailer.TableHeader{
+					{Text: "Item", Align: "center"},
+					{Text: "Price", Align: "right"},
+				},
+				Rows: [][]string{
+					{"Widget", "$10.00"},
+					{"Gadget", "$25.50"},
+				},
+			},
+			expected: " Item  |  Price\n-------+-------\nWidget | $10.00\nGadget | $25.50\n",
+		},
+		{
+			name: "table with varying column widths",
+			table: mailer.Table{
+				Headers: []mailer.TableHeader{
+					{Text: "Product", Align: "left"},
+					{Text: "Price", Align: "right"},
+				},
+				Rows: [][]string{
+					{"Very Long Product Name", "$5.99"},
+					{"Short", "$100.00"},
+				},
+			},
+			expected: "Product                |   Price\n-----------------------+--------\nVery Long Product Name |   $5.99\nShort                  | $100.00\n",
+		},
+		{
+			name: "empty table with headers only",
+			table: mailer.Table{
+				Headers: []mailer.TableHeader{
+					{Text: "Name", Align: "left"},
+					{Text: "Value", Align: "right"},
+				},
+				Rows: [][]string{},
+			},
+			expected: "Name | Value\n-----+------\n",
+		},
+		{
+			name: "single column table",
+			table: mailer.Table{
+				Headers: []mailer.TableHeader{
+					{Text: "Items", Align: "left"},
+				},
+				Rows: [][]string{
+					{"Apple"},
+					{"Banana"},
+					{"Cherry"},
+				},
+			},
+			expected: "Items \n------\nApple \nBanana\nCherry\n",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := tt.table.String()
+			assert.Equal(t, tt.expected, result)
+		})
+	}
 }

@@ -1,0 +1,33 @@
+{{define "table"}}
+{{if .Table}}
+{{ $headers := .Table.Headers }}
+{{if .Table.Instruction}}
+<p>{{.Table.Instruction}}</p>
+{{end}}
+<table class="purchase" width="100%" cellpadding="0" cellspacing="0">
+    <tr>
+        <td>
+            <table class="purchase_content" width="100%" cellpadding="0" cellspacing="0">
+                <tr>
+                    {{range $headers}}
+                    <th class="purchase_heading" align="{{.Align}}">
+                        <p class="f-fallback">{{.Text}}</p>
+                    </th>
+                    {{end}}
+                </tr>
+                {{range .Table.Rows }}
+                <tr>
+                    {{range $index, $element := .}}
+                    {{ $header := index $headers $index }}
+                    <td width="{{$header.Width}}" class="purchase_item align-{{$header.Align}}">
+                        <span class="f-fallback">{{$element}}</span>
+                    </td>
+                    {{end}}
+                </tr>
+                {{end}}
+            </table>
+        </td>
+    </tr>
+</table>
+{{end}}
+{{end}}

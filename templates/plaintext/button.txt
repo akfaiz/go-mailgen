@@ -1,5 +1,0 @@
-{{define "button"}}
-{{if .Action}}
-{{.Action.Text}} ( {{.Action.URL}} )
-{{end}}
-{{end}}

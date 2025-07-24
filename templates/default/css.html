@@ -1,4 +1,4 @@
-{{define "plain-style"}}
+{{define "css"}}
 <style type="text/css" rel="stylesheet" media="all">
     /* Base ------------------------------ */
 
@@ -286,12 +286,12 @@
     }
 
     body {
-        background-color: #FFF;
-        color: #333;
+        background-color: #F2F4F6;
+        color: #51545E;
     }
 
     p {
-        color: #333;
+        color: #51545E;
     }
 
     .email-wrapper {
@@ -301,6 +301,7 @@
         -premailer-width: 100%;
         -premailer-cellpadding: 0;
         -premailer-cellspacing: 0;
+        background-color: #F2F4F6;
     }
 
     .email-content {
@@ -349,6 +350,7 @@
         -premailer-width: 570px;
         -premailer-cellpadding: 0;
         -premailer-cellspacing: 0;
+        background-color: #FFFFFF;
     }
 
     .email-footer {
@@ -382,7 +384,7 @@
     }
 
     .content-cell {
-        padding: 35px;
+        padding: 45px;
     }
 
     /*Media Queries ------------------------------ */
@@ -396,7 +398,14 @@
     }
 
     @media (prefers-color-scheme: dark) {
-        body {
+
+        body,
+        .email-body,
+        .email-body_inner,
+        .email-content,
+        .email-wrapper,
+        .email-masthead,
+        .email-footer {
             background-color: #333333 !important;
             color: #FFF !important;
         }
