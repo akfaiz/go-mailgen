@@ -1,0 +1,15 @@
+{{template "header" .}}
+************
+{{.Greeting}},
+************
+{{range .IntroLines}}
+{{.}}
+{{end}}
+{{template "button" .}}
+{{range .OutroLines}}
+{{.}}
+{{end}}
+{{.Salutation}},
+{{.Product.Name}}
+{{template "subcopy" .}}
+{{template "footer" .}}

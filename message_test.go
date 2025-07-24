@@ -1,6 +1,7 @@
 package mailer_test
 
 import (
+	"fmt"
 	"testing"
 	"time"
 
@@ -95,7 +96,6 @@ func TestMessage_Product(t *testing.T) {
 
 	product := mailer.Product{
 		Name:      "Test Product",
-		LogoURL:   "https://example.com/logo.png",
 		URL:       "https://example.com",
 		Copyright: "© 2023 Test Product",
 	}
@@ -146,15 +146,31 @@ func TestMessage_ChainedMethods(t *testing.T) {
 
 func TestMessage_GenerateHTML(t *testing.T) {
 	msg := mailer.NewMessage().
-		Subject("Test Email").
-		Greeting("Hello").
-		Line("This is a test email").
-		Action("Visit Site", "https://example.com").
-		Line("Thank you")
+		Subject("Reset Password Notification").
+		Line("You are receiving this email because we received a password reset request for your account.").
+		Action("Reset Password", "https://example.com/reset-password").
+		Linef("This password reset link will expire in %d minutes.", 60).
+		Line("If you did not request a password reset, no further action is required.")
 
 	html, err := msg.GenerateHTML()
 	require.NoError(t, err)
 
 	assert.NotEmpty(t, html)
 	assert.Contains(t, html, "<html")
+	fmt.Println(html) // For debugging purposes, can be removed later
+}
+
+func TestMessage_GeneratePlaintext(t *testing.T) {
+	msg := mailer.NewMessage().
+		Subject("Reset Password Notification").
+		Line("You are receiving this email because we received a password reset request for your account.").
+		Action("Reset Password", "https://example.com/reset-password").
+		Linef("This password reset link will expire in %d minutes.", 60).
+		Line("If you did not request a password reset, no further action is required.")
+
+	plaintext, err := msg.GeneratePlaintext()
+	require.NoError(t, err)
+
+	assert.NotEmpty(t, plaintext)
+	assert.Contains(t, plaintext, "You are receiving this email because we received a password reset request for your account.")
 }

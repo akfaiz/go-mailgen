@@ -33,9 +33,8 @@ func TestNew(t *testing.T) {
 			opts: []mailer.Option{
 				mailer.WithFrom("Test Sender", "test@example.com"),
 				mailer.WithProduct(mailer.Product{
-					Name:    "Test Product",
-					LogoURL: "https://example.com/logo.png",
-					URL:     "https://example.com",
+					Name: "Test Product",
+					URL:  "https://example.com",
 				}),
 			},
 			wantNil: false,

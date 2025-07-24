@@ -25,7 +25,7 @@ install:
 .PHONY: test
 test:
 	@echo "Running tests..."
-	go test -cover -race ./... -coverprofile=$(COVERAGE_FILE) -coverpkg=./...
+	go test -v -cover -race ./... -coverprofile=$(COVERAGE_FILE) -coverpkg=./...
 
 .PHONY: coverage
 coverage:

@@ -4,19 +4,28 @@ import (
 	"bytes"
 	"embed"
 	"fmt"
-	"html/template"
+	htmltemplate "html/template"
 	"io"
 	"io/fs"
+	texttemplate "text/template"
 	"time"
+
+	"github.com/vanng822/go-premailer/premailer"
 )
 
 // Product represents the product information used in the email.
 // It includes the product name, logo URL, product URL, and copyright information.
 type Product struct {
 	Name      string
-	LogoURL   string
 	URL       string
 	Copyright string
+}
+
+// Action represents an action button in the email message.
+type Action struct {
+	Text  string
+	URL   string
+	Color string
 }
 
 // Address represents an email address with an optional name.
@@ -46,8 +55,7 @@ type Message struct {
 	salutation string
 	introLines []string
 	outroLines []string
-	actionText string
-	actionURL  string
+	action     *Action
 	product    Product
 
 	files           []file
@@ -138,7 +146,7 @@ func (m *Message) Salutation(salutation string) *Message {
 // Line adds a line of text to the email message.
 // If an action is set, it will be added to the outro lines; otherwise, it will be added to the intro lines.
 func (m *Message) Line(text string) *Message {
-	if m.actionText == "" {
+	if m.action == nil {
 		m.introLines = append(m.introLines, text)
 	} else {
 		m.outroLines = append(m.outroLines, text)
@@ -154,9 +162,19 @@ func (m *Message) Linef(format string, args ...interface{}) *Message {
 }
 
 // Action sets the action text and URL for the email message.
-func (m *Message) Action(text, url string) *Message {
-	m.actionText = text
-	m.actionURL = url
+// It can also accept a color for the button, defaulting to "primary" if not provided.
+//
+// Supporting colors are: primary, green, and red.
+func (m *Message) Action(text, url string, color ...string) *Message {
+	action := Action{
+		Text:  text,
+		URL:   url,
+		Color: "primary",
+	}
+	if len(color) > 0 {
+		action.Color = color[0]
+	}
+	m.action = &action
 	return m
 }
 
@@ -211,39 +229,60 @@ func (m *Message) AttachReadSeeker(name string, readSeeker io.ReadSeeker, opts .
 }
 
 type templateData struct {
-	Greeting         string
-	Salutation       string
-	IntroLines       []string
-	OutroLines       []string
-	ActionText       string
-	ActionURL        string
-	ProductName      string
-	ProductURL       string
-	ProductLogo      string
-	ProductCopyright string
+	Greeting   string
+	Salutation string
+	IntroLines []string
+	OutroLines []string
+	Action     *Action
+	Product    Product
 }
 
 //go:embed templates/default/*
-var defaultTmplFS embed.FS
+var defaultTemplateFS embed.FS
 
-var defaultTmpl = template.Must(template.New("message.html").ParseFS(defaultTmplFS, "templates/default/*.html"))
+//go:embed templates/plaintext/*
+var plaintextTemplateFS embed.FS
+
+var defaultTmpl = htmltemplate.Must(htmltemplate.New("message.html").ParseFS(defaultTemplateFS, "templates/default/*.html"))
+var plaintextTmpl = texttemplate.Must(texttemplate.New("message.txt").ParseFS(plaintextTemplateFS, "templates/plaintext/*.txt"))
 
 // GenerateHTML generates the HTML content for the email message using the provided template.
 func (m *Message) GenerateHTML() (string, error) {
 	data := templateData{
-		Greeting:         m.greeting,
-		Salutation:       m.salutation,
-		IntroLines:       m.introLines,
-		OutroLines:       m.outroLines,
-		ActionText:       m.actionText,
-		ActionURL:        m.actionURL,
-		ProductName:      m.product.Name,
-		ProductURL:       m.product.URL,
-		ProductLogo:      m.product.LogoURL,
-		ProductCopyright: m.product.Copyright,
+		Greeting:   m.greeting,
+		Salutation: m.salutation,
+		IntroLines: m.introLines,
+		OutroLines: m.outroLines,
+		Action:     m.action,
+		Product:    m.product,
 	}
 	var buf bytes.Buffer
 	if err := defaultTmpl.ExecuteTemplate(&buf, "message.html", data); err != nil {
+		return "", err
+	}
+	prem, err := premailer.NewPremailerFromBytes(buf.Bytes(), premailer.NewOptions())
+	if err != nil {
+		return "", err
+	}
+	html, err := prem.Transform()
+	if err != nil {
+		return "", err
+	}
+	return html, nil
+}
+
+// GeneratePlaintext generates the plaintext content for the email message using the provided template.
+func (m *Message) GeneratePlaintext() (string, error) {
+	data := templateData{
+		Greeting:   m.greeting,
+		Salutation: m.salutation,
+		IntroLines: m.introLines,
+		OutroLines: m.outroLines,
+		Action:     m.action,
+		Product:    m.product,
+	}
+	var buf bytes.Buffer
+	if err := plaintextTmpl.ExecuteTemplate(&buf, "message.txt", data); err != nil {
 		return "", err
 	}
 	return buf.String(), nil

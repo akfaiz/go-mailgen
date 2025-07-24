@@ -45,10 +45,6 @@ func (m *Mailer) toMailMsg(message *Message) (*mail.Msg, error) {
 	}
 
 	message.Product(m.cfg.product)
-	html, err := message.GenerateHTML()
-	if err != nil {
-		return nil, err
-	}
 
 	msg := mail.NewMsg()
 
@@ -83,6 +79,16 @@ func (m *Mailer) toMailMsg(message *Message) (*mail.Msg, error) {
 		}
 	}
 	msg.Subject(message.GetSubject())
+
+	plaintext, err := message.GeneratePlaintext()
+	if err != nil {
+		return nil, err
+	}
+	msg.SetBodyString(mail.TypeTextPlain, plaintext)
+	html, err := message.GenerateHTML()
+	if err != nil {
+		return nil, err
+	}
 	msg.SetBodyString(mail.TypeTextHTML, html)
 
 	if err := m.setAttachments(msg, message); err != nil {
