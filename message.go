@@ -51,6 +51,7 @@ type Message struct {
 	cc      []string
 	bcc     []string
 
+	theme      string
 	greeting   string
 	salutation string
 	introLines []string
@@ -76,14 +77,16 @@ type Message struct {
 //		Action("Reset Password", "https://example.com/reset-password").
 //		Line("If you did not request this, please ignore this email")
 func NewMessage() *Message {
-	m := &Message{}
+	m := &Message{
+		theme:      "default",
+		greeting:   "Hello",
+		salutation: "Best regards",
+	}
 
-	return m.Greeting("Hello").
-		Salutation("Best regards").
-		Product(Product{
-			Name: "GoMailer",
-			URL:  "https://github.com/ahmadfaizk/go-mailer",
-		})
+	return m.Product(Product{
+		Name: "GoMailer",
+		URL:  "https://github.com/ahmadfaizk/go-mailer",
+	})
 }
 
 // Subject sets the subject of the email message.
@@ -126,6 +129,13 @@ func (m *Message) Cc(cc ...string) *Message {
 // Bcc adds blind carbon copy (BCC) recipients to the email message.
 func (m *Message) Bcc(bcc ...string) *Message {
 	m.bcc = append(m.bcc, bcc...)
+	return m
+}
+
+// Theme sets the theme for the email message.
+// Supported themes are "default" and "plain".
+func (m *Message) Theme(theme string) *Message {
+	m.theme = theme
 	return m
 }
 
@@ -241,6 +251,7 @@ func (m *Message) AttachReadSeeker(name string, readSeeker io.ReadSeeker, opts .
 }
 
 type templateData struct {
+	Theme      string
 	Greeting   string
 	Salutation string
 	IntroLines []string
@@ -255,12 +266,22 @@ var defaultTmplFS embed.FS
 //go:embed templates/plaintext/*
 var plaintextTmplFS embed.FS
 
-var defaultTmpl = htmltemplate.Must(htmltemplate.New("message.html").ParseFS(defaultTmplFS, "templates/default/*.html"))
-var plaintextTmpl = texttemplate.Must(texttemplate.New("message.txt").ParseFS(plaintextTmplFS, "templates/plaintext/*.txt"))
+var defaultTmpl = htmltemplate.Must(htmltemplate.New("message.html").
+	Funcs(htmltemplate.FuncMap{
+		"eq": func(a, b any) bool {
+			return a == b
+		},
+	}).
+	ParseFS(defaultTmplFS, "templates/default/*.html"),
+)
+var plaintextTmpl = texttemplate.Must(texttemplate.New("message.txt").
+	ParseFS(plaintextTmplFS, "templates/plaintext/*.txt"),
+)
 
 // GenerateHTML generates the HTML content for the email message using the provided template.
 func (m *Message) GenerateHTML() (string, error) {
 	data := templateData{
+		Theme:      m.theme,
 		Greeting:   m.greeting,
 		Salutation: m.salutation,
 		IntroLines: m.introLines,

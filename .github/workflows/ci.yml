@@ -41,7 +41,7 @@ jobs:
         go mod download
     - name: Test
       run: |
-          go test -cover -race ./... -coverprofile=coverage.text
+          go test -v -cover -race ./... -coverprofile=coverage.text
     - name: Upload coverage reports to Codecov
       uses: codecov/codecov-action@v5
       with:

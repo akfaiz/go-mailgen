@@ -153,9 +153,15 @@ func TestMessage_GenerateHTML(t *testing.T) {
 
 	html, err := msg.GenerateHTML()
 	require.NoError(t, err)
+	plainHtml, err := msg.Theme("plain").GenerateHTML()
+	require.NoError(t, err)
 
 	assert.NotEmpty(t, html)
 	assert.Contains(t, html, "<html")
+	assert.Contains(t, html, "You are receiving this email because we received a password reset request for your account.")
+	assert.NotEmpty(t, plainHtml)
+	assert.Contains(t, plainHtml, "<html")
+	assert.Contains(t, plainHtml, "You are receiving this email because we received a password reset request for your account.")
 }
 
 func TestMessage_GeneratePlaintext(t *testing.T) {
