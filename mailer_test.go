@@ -82,6 +82,7 @@ func TestMailer_Send(t *testing.T) {
 		mail.WithPort(server.PortNumber()),
 		mail.WithSMTPAuth(mail.SMTPAuthNoAuth),
 		mail.WithTLSPortPolicy(mail.NoTLS),
+		mail.WithHELO("localhost"),
 	)
 	require.NoError(t, err)
 

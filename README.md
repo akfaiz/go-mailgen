@@ -1,6 +1,11 @@
 # Go-Mailer
+[![Go](https://github.com/ahmadfaizk/go-mailer/actions/workflows/ci.yml/badge.svg)](https://github.com/ahmadfaizk/go-mailer/actions/workflows/ci.yml)
+[![Go Report Card](https://goreportcard.com/badge/github.com/ahmadfaizk/go-mailer)](https://goreportcard.com/report/github.com/ahmadfaizk/go-mailer)
+[![codecov](https://codecov.io/gh/ahmadfaizk/go-mailer/graph/badge.svg?token=7tbSVRaD4b)](https://codecov.io/gh/ahmadfaizk/go-mailer)
+[![GoDoc](https://pkg.go.dev/badge/github.com/ahmadfaizk/go-mailer)](https://pkg.go.dev/github.com/ahmadfaizk/go-mailer)
+[![Go Version](https://img.shields.io/github/go-mod/go-version/ahmadfaizk/go-mailer)](https://golang.org/doc/devel/release.html)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-## Overview
 Go-Mailer is a Go library that wraps the [wneessen/go-mail](https://github.com/wneessen/go-mail) library to provide a simplified interface for sending emails using an existing `mail.Client` instance. This library enhances `go-mail` with a fluent HTML message builder, making it easy to create and send rich, dynamic email content.
 
 ## Features
