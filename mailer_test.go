@@ -73,7 +73,10 @@ func TestMailer_Send(t *testing.T) {
 	if err := server.Start(); err != nil {
 		t.Fatalf("failed to start mock SMTP server: %v", err)
 	}
-	defer server.Stop()
+	defer func() {
+		_ = server.Stop()
+	}()
+
 	client, err := mail.NewClient("127.0.0.1",
 		mail.WithPort(server.PortNumber()),
 		mail.WithSMTPAuth(mail.SMTPAuthNoAuth),
