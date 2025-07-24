@@ -13,9 +13,9 @@ func main() {
 		URL:  "https://github.com/ahmadfaizk/go-mailer",
 	}
 	messages := map[string]*mailer.Message{
-		"reset_password": resetPassword(),
-		"welcome":        welcomeEmail(),
-		"receipt":        receiptEmail(),
+		"reset":   resetMessage(),
+		"welcome": welcomeMessage(),
+		"receipt": receiptMessage(),
 	}
 	themes := []string{"default", "plain"}
 
@@ -45,7 +45,7 @@ func main() {
 	}
 }
 
-func resetPassword() *mailer.Message {
+func resetMessage() *mailer.Message {
 	return mailer.NewMessage().
 		Subject("Reset your password").
 		To("recipient@example.com").
@@ -55,7 +55,7 @@ func resetPassword() *mailer.Message {
 		Line("If you did not request this, please ignore this email")
 }
 
-func welcomeEmail() *mailer.Message {
+func welcomeMessage() *mailer.Message {
 	return mailer.NewMessage().
 		Subject("Welcome to our service!").
 		To("recipient@example.com").
@@ -64,7 +64,7 @@ func welcomeEmail() *mailer.Message {
 		Line("If you have any questions, feel free to reach out to our support team.")
 }
 
-func receiptEmail() *mailer.Message {
+func receiptMessage() *mailer.Message {
 	return mailer.NewMessage().
 		Subject("Your order receipt").
 		To("recipient@example.com").
