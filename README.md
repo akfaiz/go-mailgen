@@ -1,6 +1,5 @@
 # Go-Mailer
 
-## Overview
 Go-Mailer is a Go library that wraps the [wneessen/go-mail](https://github.com/wneessen/go-mail) library to provide a simplified interface for sending emails using an existing `mail.Client` instance. This library enhances `go-mail` with a fluent HTML message builder, making it easy to create and send rich, dynamic email content.
 
 ## Features
