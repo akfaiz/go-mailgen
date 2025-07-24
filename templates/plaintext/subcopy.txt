@@ -1,0 +1,7 @@
+{{define "subcopy"}}
+{{if .Action}}
+If you're having trouble clicking the "{{.Action.Text}}" button, copy and paste the URL below into your web browser:
+
+{{.Action.URL}}
+{{end}}
+{{end}}

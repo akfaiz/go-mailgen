@@ -33,20 +33,25 @@ func (m *Mailer) SendContext(ctx context.Context, message *Message) error {
 	return m.client.DialAndSendWithContext(ctx, msg)
 }
 
-func (m *Mailer) toMailMsg(message *Message) (*mail.Msg, error) {
+func (m *Mailer) validateAndModifyMessage(message *Message) error {
 	if message == nil {
-		return nil, errors.New("message cannot be nil")
+		return errors.New("message cannot be nil")
 	}
 	if len(message.GetTo()) == 0 {
-		return nil, errors.New("message must have at least one recipient")
+		return errors.New("message must have at least one recipient")
 	}
 	if message.GetSubject() == "" {
-		return nil, errors.New("message must have a subject")
+		return errors.New("message must have a subject")
 	}
 
 	message.Product(m.cfg.product)
-	html, err := message.GenerateHTML()
-	if err != nil {
+	message.Theme(m.cfg.theme)
+
+	return nil
+}
+
+func (m *Mailer) toMailMsg(message *Message) (*mail.Msg, error) {
+	if err := m.validateAndModifyMessage(message); err != nil {
 		return nil, err
 	}
 
@@ -83,6 +88,16 @@ func (m *Mailer) toMailMsg(message *Message) (*mail.Msg, error) {
 		}
 	}
 	msg.Subject(message.GetSubject())
+
+	plaintext, err := message.GeneratePlaintext()
+	if err != nil {
+		return nil, err
+	}
+	msg.SetBodyString(mail.TypeTextPlain, plaintext)
+	html, err := message.GenerateHTML()
+	if err != nil {
+		return nil, err
+	}
 	msg.SetBodyString(mail.TypeTextHTML, html)
 
 	if err := m.setAttachments(msg, message); err != nil {

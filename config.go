@@ -1,6 +1,7 @@
 package mailer
 
 type config struct {
+	theme   string
 	from    Address
 	replyTo string
 	product Product
@@ -33,12 +34,21 @@ func WithReplyTo(replyTo string) Option {
 	}
 }
 
+// WithTheme sets the theme for the email messages sent by the Mailer.
+// Supported themes are "default" and "plain".
+func WithTheme(theme string) Option {
+	return func(c *config) {
+		c.theme = theme
+	}
+}
+
 func newConfig(opts ...Option) *config {
 	cfg := &config{
 		product: Product{
 			Name: "GoMailer",
 			URL:  "https://github.com/ahmadfaizk/go-mailer",
 		},
+		theme: "default",
 	}
 	for _, opt := range opts {
 		opt(cfg)

@@ -4,19 +4,28 @@ import (
 	"bytes"
 	"embed"
 	"fmt"
-	"html/template"
+	htmltemplate "html/template"
 	"io"
 	"io/fs"
+	texttemplate "text/template"
 	"time"
+
+	"github.com/vanng822/go-premailer/premailer"
 )
 
 // Product represents the product information used in the email.
 // It includes the product name, logo URL, product URL, and copyright information.
 type Product struct {
 	Name      string
-	LogoURL   string
 	URL       string
 	Copyright string
+}
+
+// Action represents an action button in the email message.
+type Action struct {
+	Text  string
+	URL   string
+	Color string
 }
 
 // Address represents an email address with an optional name.
@@ -42,12 +51,12 @@ type Message struct {
 	cc      []string
 	bcc     []string
 
+	theme      string
 	greeting   string
 	salutation string
 	introLines []string
 	outroLines []string
-	actionText string
-	actionURL  string
+	action     *Action
 	product    Product
 
 	files           []file
@@ -68,14 +77,16 @@ type Message struct {
 //		Action("Reset Password", "https://example.com/reset-password").
 //		Line("If you did not request this, please ignore this email")
 func NewMessage() *Message {
-	m := &Message{}
+	m := &Message{
+		theme:      "default",
+		greeting:   "Hello",
+		salutation: "Best regards",
+	}
 
-	return m.Greeting("Hello").
-		Salutation("Best regards").
-		Product(Product{
-			Name: "GoMailer",
-			URL:  "https://github.com/ahmadfaizk/go-mailer",
-		})
+	return m.Product(Product{
+		Name: "GoMailer",
+		URL:  "https://github.com/ahmadfaizk/go-mailer",
+	})
 }
 
 // Subject sets the subject of the email message.
@@ -121,6 +132,13 @@ func (m *Message) Bcc(bcc ...string) *Message {
 	return m
 }
 
+// Theme sets the theme for the email message.
+// Supported themes are "default" and "plain".
+func (m *Message) Theme(theme string) *Message {
+	m.theme = theme
+	return m
+}
+
 // Greeting sets the greeting line of the email message.
 // Default is "Hello".
 func (m *Message) Greeting(greeting string) *Message {
@@ -138,7 +156,7 @@ func (m *Message) Salutation(salutation string) *Message {
 // Line adds a line of text to the email message.
 // If an action is set, it will be added to the outro lines; otherwise, it will be added to the intro lines.
 func (m *Message) Line(text string) *Message {
-	if m.actionText == "" {
+	if m.action == nil {
 		m.introLines = append(m.introLines, text)
 	} else {
 		m.outroLines = append(m.outroLines, text)
@@ -154,9 +172,19 @@ func (m *Message) Linef(format string, args ...interface{}) *Message {
 }
 
 // Action sets the action text and URL for the email message.
-func (m *Message) Action(text, url string) *Message {
-	m.actionText = text
-	m.actionURL = url
+// It can also accept a color for the button, defaulting to "primary" if not provided.
+//
+// Supporting colors are: primary, green, and red.
+func (m *Message) Action(text, url string, color ...string) *Message {
+	action := Action{
+		Text:  text,
+		URL:   url,
+		Color: "primary",
+	}
+	if len(color) > 0 {
+		action.Color = color[0]
+	}
+	m.action = &action
 	return m
 }
 
@@ -185,65 +213,109 @@ func (m *Message) AttachFile(name string, opts ...FileOption) *Message {
 // AttachFromEmbedFS attaches a file from an embedded filesystem to the email message.
 // The file is specified by its name and the embedded filesystem, along with additional options for configuration
 func (m *Message) AttachFromEmbedFS(name string, fs *embed.FS, opts ...FileOption) *Message {
-	m.filesEmbedFS = append(m.filesEmbedFS, fileEmbedFS{file{name: name, cfg: newFileConfig(opts...)}, fs})
+	m.filesEmbedFS = append(m.filesEmbedFS, fileEmbedFS{
+		file: file{name: name, cfg: newFileConfig(opts...)},
+		fs:   fs,
+	})
 	return m
 }
 
 // AttachFromIOFS attaches a file from an IOFS filesystem to the email message.
 // The file is specified by its name and the IOFS filesystem, along with additional options for configuration.
 func (m *Message) AttachFromIOFS(name string, fs fs.FS, opts ...FileOption) *Message {
-	m.filesIOFS = append(m.filesIOFS, fileIOFS{file: file{name: name, cfg: newFileConfig(opts...)}, FS: fs})
+	m.filesIOFS = append(m.filesIOFS, fileIOFS{
+		file: file{name: name, cfg: newFileConfig(opts...)},
+		FS:   fs,
+	})
 	return m
 }
 
 // AttachReader attaches a file from an io.Reader to the email message.
 // The file is specified by its name and the reader, along with additional options for configuration.
 func (m *Message) AttachReader(name string, reader io.Reader, opts ...FileOption) *Message {
-	m.filesReader = append(m.filesReader, fileReader{file: file{name: name, cfg: newFileConfig(opts...)}, Reader: reader})
+	m.filesReader = append(m.filesReader, fileReader{
+		file:   file{name: name, cfg: newFileConfig(opts...)},
+		Reader: reader,
+	})
 	return m
 }
 
 // AttachReadSeeker attaches a file from an io.ReadSeeker to the email message.
 // The file is specified by its name and the read seeker, along with additional options for configuration.
 func (m *Message) AttachReadSeeker(name string, readSeeker io.ReadSeeker, opts ...FileOption) *Message {
-	m.filesReadSeeker = append(m.filesReadSeeker, fileReadSeeker{file: file{name: name, cfg: newFileConfig(opts...)}, ReadSeeker: readSeeker})
+	m.filesReadSeeker = append(m.filesReadSeeker, fileReadSeeker{
+		file:       file{name: name, cfg: newFileConfig(opts...)},
+		ReadSeeker: readSeeker,
+	})
 	return m
 }
 
 type templateData struct {
-	Greeting         string
-	Salutation       string
-	IntroLines       []string
-	OutroLines       []string
-	ActionText       string
-	ActionURL        string
-	ProductName      string
-	ProductURL       string
-	ProductLogo      string
-	ProductCopyright string
+	Theme      string
+	Greeting   string
+	Salutation string
+	IntroLines []string
+	OutroLines []string
+	Action     *Action
+	Product    Product
 }
 
 //go:embed templates/default/*
 var defaultTmplFS embed.FS
 
-var defaultTmpl = template.Must(template.New("message.html").ParseFS(defaultTmplFS, "templates/default/*.html"))
+//go:embed templates/plaintext/*
+var plaintextTmplFS embed.FS
+
+var defaultTmpl = htmltemplate.Must(htmltemplate.New("message.html").
+	Funcs(htmltemplate.FuncMap{
+		"eq": func(a, b any) bool {
+			return a == b
+		},
+	}).
+	ParseFS(defaultTmplFS, "templates/default/*.html"),
+)
+var plaintextTmpl = texttemplate.Must(texttemplate.New("message.txt").
+	ParseFS(plaintextTmplFS, "templates/plaintext/*.txt"),
+)
 
 // GenerateHTML generates the HTML content for the email message using the provided template.
 func (m *Message) GenerateHTML() (string, error) {
 	data := templateData{
-		Greeting:         m.greeting,
-		Salutation:       m.salutation,
-		IntroLines:       m.introLines,
-		OutroLines:       m.outroLines,
-		ActionText:       m.actionText,
-		ActionURL:        m.actionURL,
-		ProductName:      m.product.Name,
-		ProductURL:       m.product.URL,
-		ProductLogo:      m.product.LogoURL,
-		ProductCopyright: m.product.Copyright,
+		Theme:      m.theme,
+		Greeting:   m.greeting,
+		Salutation: m.salutation,
+		IntroLines: m.introLines,
+		OutroLines: m.outroLines,
+		Action:     m.action,
+		Product:    m.product,
 	}
 	var buf bytes.Buffer
 	if err := defaultTmpl.ExecuteTemplate(&buf, "message.html", data); err != nil {
+		return "", err
+	}
+	prem, err := premailer.NewPremailerFromBytes(buf.Bytes(), premailer.NewOptions())
+	if err != nil {
+		return "", err
+	}
+	html, err := prem.Transform()
+	if err != nil {
+		return "", err
+	}
+	return html, nil
+}
+
+// GeneratePlaintext generates the plaintext content for the email message using the provided template.
+func (m *Message) GeneratePlaintext() (string, error) {
+	data := templateData{
+		Greeting:   m.greeting,
+		Salutation: m.salutation,
+		IntroLines: m.introLines,
+		OutroLines: m.outroLines,
+		Action:     m.action,
+		Product:    m.product,
+	}
+	var buf bytes.Buffer
+	if err := plaintextTmpl.ExecuteTemplate(&buf, "message.txt", data); err != nil {
 		return "", err
 	}
 	return buf.String(), nil

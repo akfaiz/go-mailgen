@@ -1,6 +1,6 @@
 COVERAGE_FILE := coverage.out
 COVERAGE_HTML := coverage.html
-MIN_COVERAGE  := 80
+MIN_COVERAGE  := 90
 
 # Format code
 .PHONY: fmt
@@ -25,7 +25,7 @@ install:
 .PHONY: test
 test:
 	@echo "Running tests..."
-	go test -cover -race ./... -coverprofile=$(COVERAGE_FILE) -coverpkg=./...
+	go test -v -cover -race ./... -coverprofile=$(COVERAGE_FILE) -coverpkg=./...
 
 .PHONY: coverage
 coverage:
