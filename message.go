@@ -5,6 +5,8 @@ import (
 	"embed"
 	"fmt"
 	"html/template"
+	"io"
+	"io/fs"
 	"time"
 )
 
@@ -47,6 +49,12 @@ type Message struct {
 	actionText string
 	actionURL  string
 	product    Product
+
+	files           []file
+	filesEmbedFS    []fileEmbedFS
+	filesIOFS       []fileIOFS
+	filesReader     []fileReader
+	filesReadSeeker []fileReadSeeker
 }
 
 // NewMessage creates a new Message instance with default values for greeting, salutation, and product.
@@ -164,6 +172,41 @@ func (m *Message) Product(product Product) *Message {
 	if m.product.Copyright == "" {
 		m.product.Copyright = fmt.Sprintf("© %d %s. All rights reserved.", time.Now().Year(), m.product.Name)
 	}
+	return m
+}
+
+// AttachFile attaches a file to the email message.
+// The file is specified by its name and can include additional options for configuration.
+func (m *Message) AttachFile(name string, opts ...FileOption) *Message {
+	m.files = append(m.files, file{name: name, cfg: newFileConfig(opts...)})
+	return m
+}
+
+// AttachFromEmbedFS attaches a file from an embedded filesystem to the email message.
+// The file is specified by its name and the embedded filesystem, along with additional options for configuration
+func (m *Message) AttachFromEmbedFS(name string, fs *embed.FS, opts ...FileOption) *Message {
+	m.filesEmbedFS = append(m.filesEmbedFS, fileEmbedFS{file{name: name, cfg: newFileConfig(opts...)}, fs})
+	return m
+}
+
+// AttachFromIOFS attaches a file from an IOFS filesystem to the email message.
+// The file is specified by its name and the IOFS filesystem, along with additional options for configuration.
+func (m *Message) AttachFromIOFS(name string, fs fs.FS, opts ...FileOption) *Message {
+	m.filesIOFS = append(m.filesIOFS, fileIOFS{file: file{name: name, cfg: newFileConfig(opts...)}, FS: fs})
+	return m
+}
+
+// AttachReader attaches a file from an io.Reader to the email message.
+// The file is specified by its name and the reader, along with additional options for configuration.
+func (m *Message) AttachReader(name string, reader io.Reader, opts ...FileOption) *Message {
+	m.filesReader = append(m.filesReader, fileReader{file: file{name: name, cfg: newFileConfig(opts...)}, Reader: reader})
+	return m
+}
+
+// AttachReadSeeker attaches a file from an io.ReadSeeker to the email message.
+// The file is specified by its name and the read seeker, along with additional options for configuration.
+func (m *Message) AttachReadSeeker(name string, readSeeker io.ReadSeeker, opts ...FileOption) *Message {
+	m.filesReadSeeker = append(m.filesReadSeeker, fileReadSeeker{file: file{name: name, cfg: newFileConfig(opts...)}, ReadSeeker: readSeeker})
 	return m
 }
 
