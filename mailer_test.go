@@ -1,6 +1,9 @@
 package mailer_test
 
 import (
+	"bytes"
+	"embed"
+	"os"
 	"testing"
 	"time"
 
@@ -59,6 +62,9 @@ func TestNew(t *testing.T) {
 	}
 }
 
+//go:embed testdata/*
+var testDataFS embed.FS
+
 func TestMailer_Send(t *testing.T) {
 	server := smtpmock.New(smtpmock.ConfigurationAttr{
 		// LogToStdout:       true,
@@ -113,6 +119,105 @@ func TestMailer_Send(t *testing.T) {
 					Line("This is a test email.").
 					Action("Click here", "https://example.com").
 					Line("Thank you for using our service.")
+				return msg
+			}(),
+			wantErr: false,
+			expectFunc: func(t *testing.T) {
+				messages, err := server.WaitForMessagesAndPurge(1, 1*time.Second)
+				require.NoError(t, err)
+				require.Len(t, messages, 1)
+			},
+		},
+		{
+			name: "send message with attachment from file",
+			message: func() *mailer.Message {
+				msg := mailer.NewMessage().
+					To("recipient@example.com").
+					Subject("Test Subject with Attachment").
+					Line("This is a test email with an attachment.").
+					AttachFile("testdata/golang.png",
+						mailer.WithFileContentType(mailer.TypeAppOctetStream),
+						mailer.WithFileEncoding(mailer.EncodingB64),
+						mailer.WithFileName("golang.png"),
+						mailer.WithFileDescription("Go Programming Language Logo"),
+						mailer.WithFileContentID("golang-logo"),
+					)
+				return msg
+			}(),
+			wantErr: false,
+			expectFunc: func(t *testing.T) {
+				messages, err := server.WaitForMessagesAndPurge(1, 1*time.Second)
+				require.NoError(t, err)
+				require.Len(t, messages, 1)
+			},
+		},
+		{
+			name: "send message with attachment from embed FS",
+			message: func() *mailer.Message {
+				msg := mailer.NewMessage().
+					To("recipient@example.com").
+					Subject("Test Subject with Attachment").
+					Line("This is a test email with an attachment.").
+					AttachFromEmbedFS("testdata/golang.png", &testDataFS)
+				return msg
+			}(),
+			wantErr: false,
+			expectFunc: func(t *testing.T) {
+				messages, err := server.WaitForMessagesAndPurge(1, 1*time.Second)
+				require.NoError(t, err)
+				require.Len(t, messages, 1)
+			},
+		},
+		{
+			name: "send message with attachment from IOFS",
+			message: func() *mailer.Message {
+				msg := mailer.NewMessage().
+					To("recipient@example.com").
+					Subject("Test Subject with Attachment").
+					Line("This is a test email with an attachment.").
+					AttachFromIOFS("golang.png", os.DirFS("testdata"))
+				return msg
+			}(),
+			wantErr: false,
+			expectFunc: func(t *testing.T) {
+				messages, err := server.WaitForMessagesAndPurge(1, 1*time.Second)
+				require.NoError(t, err)
+				require.Len(t, messages, 1)
+			},
+		},
+		{
+			name: "send message with attachment from reader",
+			message: func() *mailer.Message {
+				var buffer bytes.Buffer
+				_, err := buffer.ReadFrom(bytes.NewReader([]byte("This is a test attachment.")))
+				require.NoError(t, err)
+				reader := bytes.NewReader(buffer.Bytes())
+
+				msg := mailer.NewMessage().
+					To("recipient@example.com").
+					Subject("Test Subject with Attachment").
+					Line("This is a test email with an attachment.").
+					AttachReader("test.txt", reader)
+				return msg
+			}(),
+			wantErr: false,
+			expectFunc: func(t *testing.T) {
+				messages, err := server.WaitForMessagesAndPurge(1, 1*time.Second)
+				require.NoError(t, err)
+				require.Len(t, messages, 1)
+			},
+		},
+		{
+			name: "send message with attachment from read seeker",
+			message: func() *mailer.Message {
+				file, err := os.Open("testdata/golang.png")
+				require.NoError(t, err)
+
+				msg := mailer.NewMessage().
+					To("recipient@example.com").
+					Subject("Test Subject with Attachment").
+					Line("This is a test email with an attachment.").
+					AttachReadSeeker("golang.png", file)
 				return msg
 			}(),
 			wantErr: false,
@@ -194,6 +299,32 @@ func TestMailer_Send(t *testing.T) {
 			}(),
 			wantErr:     true,
 			errContains: "failed to parse mail address",
+		},
+		{
+			name: "return errors when attachment embedded file is not found",
+			message: func() *mailer.Message {
+				msg := mailer.NewMessage().
+					To("recipient@example.com").
+					Subject("Test Subject").
+					Line("This is a test email with an attachment.").
+					AttachFromEmbedFS("testdata/golang.jpg", &testDataFS)
+				return msg
+			}(),
+			wantErr:     true,
+			errContains: "file does not exist",
+		},
+		{
+			name: "return errors when attachment IOFS file is not found",
+			message: func() *mailer.Message {
+				msg := mailer.NewMessage().
+					To("recipient@example.com").
+					Subject("Test Subject").
+					Line("This is a test email with an attachment.").
+					AttachFromIOFS("testdata/golang.jpg", os.DirFS("testdata"))
+				return msg
+			}(),
+			wantErr:     true,
+			errContains: "no such file or directory",
 		},
 	}
 
