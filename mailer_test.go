@@ -1,10 +1,10 @@
-package gomailer_test
+package mailer_test
 
 import (
 	"testing"
 	"time"
 
-	gomailer "github.com/ahmadfaizk/go-mailer"
+	"github.com/ahmadfaizk/go-mailer"
 	smtpmock "github.com/mocktools/go-smtp-mock/v2"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -15,7 +15,7 @@ func TestNew(t *testing.T) {
 	tests := []struct {
 		name    string
 		client  *mail.Client
-		opts    []gomailer.Option
+		opts    []mailer.Option
 		wantNil bool
 	}{
 		{
@@ -27,9 +27,9 @@ func TestNew(t *testing.T) {
 		{
 			name:   "creates mailer with client and options",
 			client: &mail.Client{},
-			opts: []gomailer.Option{
-				gomailer.WithFrom("Test Sender", "test@example.com"),
-				gomailer.WithProduct(gomailer.Product{
+			opts: []mailer.Option{
+				mailer.WithFrom("Test Sender", "test@example.com"),
+				mailer.WithProduct(mailer.Product{
 					Name:    "Test Product",
 					LogoURL: "https://example.com/logo.png",
 					URL:     "https://example.com",
@@ -47,7 +47,7 @@ func TestNew(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := gomailer.New(tt.client, tt.opts...)
+			got := mailer.New(tt.client, tt.opts...)
 
 			if tt.wantNil {
 				assert.Nil(t, got)
@@ -75,19 +75,19 @@ func TestMailer_Send(t *testing.T) {
 	)
 	require.NoError(t, err)
 
-	mailer := gomailer.New(client)
+	mailMailer := mailer.New(client)
 
 	tests := []struct {
 		name        string
-		message     *gomailer.Message
+		message     *mailer.Message
 		wantErr     bool
 		errContains string
 		expectFunc  func(*testing.T)
 	}{
 		{
 			name: "sends message successfully",
-			message: func() *gomailer.Message {
-				msg := gomailer.NewMessage().
+			message: func() *mailer.Message {
+				msg := mailer.NewMessage().
 					To("recipient@example.com").
 					Subject("Test Subject").
 					Line("This is a test email.").
@@ -104,8 +104,8 @@ func TestMailer_Send(t *testing.T) {
 		},
 		{
 			name: "sends message with CC and BCC",
-			message: func() *gomailer.Message {
-				msg := gomailer.NewMessage().
+			message: func() *mailer.Message {
+				msg := mailer.NewMessage().
 					To("recipient@example.com").
 					Cc("cc@example.com").
 					Bcc("bcc@example.com").
@@ -130,8 +130,8 @@ func TestMailer_Send(t *testing.T) {
 		},
 		{
 			name: "returns error when message has no recipients",
-			message: func() *gomailer.Message {
-				msg := gomailer.NewMessage()
+			message: func() *mailer.Message {
+				msg := mailer.NewMessage()
 				msg.Subject("Test Subject")
 				return msg
 			}(),
@@ -140,8 +140,8 @@ func TestMailer_Send(t *testing.T) {
 		},
 		{
 			name: "returns error when message has no subject",
-			message: func() *gomailer.Message {
-				msg := gomailer.NewMessage()
+			message: func() *mailer.Message {
+				msg := mailer.NewMessage()
 				msg.To("recipient@example.com")
 				return msg
 			}(),
@@ -150,8 +150,8 @@ func TestMailer_Send(t *testing.T) {
 		},
 		{
 			name: "returns error when recipient email is invalid",
-			message: func() *gomailer.Message {
-				msg := gomailer.NewMessage()
+			message: func() *mailer.Message {
+				msg := mailer.NewMessage()
 				msg.To("invalid-email")
 				msg.Subject("Test Subject")
 				return msg
@@ -161,8 +161,8 @@ func TestMailer_Send(t *testing.T) {
 		},
 		{
 			name: "returns error when cc email is invalid",
-			message: func() *gomailer.Message {
-				msg := gomailer.NewMessage().
+			message: func() *mailer.Message {
+				msg := mailer.NewMessage().
 					To("recipient@example.com").
 					Cc("invalid-email").
 					Subject("Test Subject")
@@ -173,8 +173,8 @@ func TestMailer_Send(t *testing.T) {
 		},
 		{
 			name: "returns error when bcc email is invalid",
-			message: func() *gomailer.Message {
-				msg := gomailer.NewMessage().
+			message: func() *mailer.Message {
+				msg := mailer.NewMessage().
 					To("recipient@example.com").
 					Bcc("invalid-email").
 					Subject("Test Subject")
@@ -187,7 +187,7 @@ func TestMailer_Send(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := mailer.Send(tt.message)
+			err := mailMailer.Send(tt.message)
 
 			if tt.wantErr {
 				assert.Error(t, err)

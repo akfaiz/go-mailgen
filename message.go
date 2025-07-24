@@ -1,4 +1,4 @@
-package gomailer
+package mailer
 
 import (
 	"bytes"
@@ -35,6 +35,16 @@ type Message struct {
 }
 
 // NewMessage creates a new Message instance with default values for greeting, salutation, and product.
+//
+// Example usage:
+//
+//	html, err := gomailer.NewMessage().
+//		Subject("Reset Password").
+//		To("recipient@example.com").
+//		Line("Click the button below to reset your password").
+//		Action("Reset Password", "https://example.com/reset-password").
+//		Line("If you did not request this, please ignore this email").
+//		GenerateHTML()
 func NewMessage() *Message {
 	m := &Message{}
 

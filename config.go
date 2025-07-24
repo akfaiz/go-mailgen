@@ -1,8 +1,9 @@
-package gomailer
+package mailer
 
 type config struct {
 	fromName    string
 	fromAddress string
+	replyTo     string
 	product     Product
 }
 
@@ -21,6 +22,13 @@ func WithFrom(name, address string) Option {
 func WithProduct(product Product) Option {
 	return func(c *config) {
 		c.product = product
+	}
+}
+
+// WithReplyTo sets the reply-to address for the email messages sent by the Mailer.
+func WithReplyTo(replyTo string) Option {
+	return func(c *config) {
+		c.replyTo = replyTo
 	}
 }
 

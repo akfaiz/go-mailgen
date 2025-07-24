@@ -1,4 +1,4 @@
-package gomailer
+package mailer
 
 import (
 	"context"
@@ -65,6 +65,11 @@ func (m *Mailer) toMailMsg(message *Message) (*mail.Msg, error) {
 	}
 	if len(message.GetBcc()) > 0 {
 		if err := msg.Bcc(message.GetBcc()...); err != nil {
+			return nil, err
+		}
+	}
+	if m.cfg.replyTo != "" {
+		if err := msg.ReplyTo(m.cfg.replyTo); err != nil {
 			return nil, err
 		}
 	}

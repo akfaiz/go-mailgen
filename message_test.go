@@ -1,16 +1,16 @@
-package gomailer_test
+package mailer_test
 
 import (
 	"testing"
 	"time"
 
-	gomailer "github.com/ahmadfaizk/go-mailer"
+	"github.com/ahmadfaizk/go-mailer"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 func TestNewMessage(t *testing.T) {
-	msg := gomailer.NewMessage()
+	msg := mailer.NewMessage()
 
 	assert.Empty(t, msg.GetSubject())
 	assert.Empty(t, msg.GetTo())
@@ -19,7 +19,7 @@ func TestNewMessage(t *testing.T) {
 }
 
 func TestMessage_Subject(t *testing.T) {
-	msg := gomailer.NewMessage()
+	msg := mailer.NewMessage()
 	subject := "Test Subject"
 
 	msg.Subject(subject)
@@ -28,7 +28,7 @@ func TestMessage_Subject(t *testing.T) {
 }
 
 func TestMessage_To(t *testing.T) {
-	msg := gomailer.NewMessage()
+	msg := mailer.NewMessage()
 
 	msg.To("test1@example.com", "test2@example.com")
 
@@ -37,7 +37,7 @@ func TestMessage_To(t *testing.T) {
 }
 
 func TestMessage_Cc(t *testing.T) {
-	msg := gomailer.NewMessage()
+	msg := mailer.NewMessage()
 
 	msg.Cc("cc1@example.com", "cc2@example.com")
 
@@ -46,7 +46,7 @@ func TestMessage_Cc(t *testing.T) {
 }
 
 func TestMessage_Bcc(t *testing.T) {
-	msg := gomailer.NewMessage()
+	msg := mailer.NewMessage()
 
 	msg.Bcc("bcc1@example.com", "bcc2@example.com")
 
@@ -55,7 +55,7 @@ func TestMessage_Bcc(t *testing.T) {
 }
 
 func TestMessage_Line(t *testing.T) {
-	msg := gomailer.NewMessage()
+	msg := mailer.NewMessage()
 
 	msg.Line("First line")
 	msg.Line("Second line")
@@ -68,7 +68,7 @@ func TestMessage_Line(t *testing.T) {
 }
 
 func TestMessage_Linef(t *testing.T) {
-	msg := gomailer.NewMessage()
+	msg := mailer.NewMessage()
 
 	msg.Linef("Hello %s, you have %d messages", "John", 5)
 
@@ -79,7 +79,7 @@ func TestMessage_Linef(t *testing.T) {
 }
 
 func TestMessage_Action(t *testing.T) {
-	msg := gomailer.NewMessage()
+	msg := mailer.NewMessage()
 
 	msg.Action("Click Here", "https://example.com")
 
@@ -91,9 +91,9 @@ func TestMessage_Action(t *testing.T) {
 }
 
 func TestMessage_Product(t *testing.T) {
-	msg := gomailer.NewMessage()
+	msg := mailer.NewMessage()
 
-	product := gomailer.Product{
+	product := mailer.Product{
 		Name:      "Test Product",
 		LogoURL:   "https://example.com/logo.png",
 		URL:       "https://example.com",
@@ -110,9 +110,9 @@ func TestMessage_Product(t *testing.T) {
 }
 
 func TestMessage_ProductDefaults(t *testing.T) {
-	msg := gomailer.NewMessage()
+	msg := mailer.NewMessage()
 
-	msg.Product(gomailer.Product{})
+	msg.Product(mailer.Product{})
 
 	html, err := msg.GenerateHTML()
 	require.NoError(t, err)
@@ -125,7 +125,7 @@ func TestMessage_ProductDefaults(t *testing.T) {
 }
 
 func TestMessage_ChainedMethods(t *testing.T) {
-	msg := gomailer.NewMessage().
+	msg := mailer.NewMessage().
 		Subject("Chained Test").
 		To("test@example.com").
 		Cc("cc@example.com").
@@ -145,7 +145,7 @@ func TestMessage_ChainedMethods(t *testing.T) {
 }
 
 func TestMessage_GenerateHTML(t *testing.T) {
-	msg := gomailer.NewMessage().
+	msg := mailer.NewMessage().
 		Subject("Test Email").
 		Greeting("Hello").
 		Line("This is a test email").
