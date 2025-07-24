@@ -67,6 +67,7 @@ var testDataFS embed.FS
 
 func TestMailer_Send(t *testing.T) {
 	server := smtpmock.New(smtpmock.ConfigurationAttr{
+		HostAddress: "localhost",
 		// LogToStdout:       true,
 		// LogServerActivity: true,
 	})
@@ -77,7 +78,7 @@ func TestMailer_Send(t *testing.T) {
 		_ = server.Stop()
 	}()
 
-	client, err := mail.NewClient("127.0.0.1",
+	client, err := mail.NewClient("localhost",
 		mail.WithPort(server.PortNumber()),
 		mail.WithSMTPAuth(mail.SMTPAuthNoAuth),
 		mail.WithTLSPortPolicy(mail.NoTLS),
