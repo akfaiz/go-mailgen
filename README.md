@@ -6,6 +6,9 @@ Go-Mailer is a Go library that wraps the [wneessen/go-mail](https://github.com/w
 ## Features
 - **Uses Existing `mail.Client`**: Integrates with an existing `wneessen/go-mail` client for flexible configuration and reuse.
 - **Fluent HTML Message Builder**: Provides a chainable API for constructing HTML emails with methods like `Subject`, `To`, `Line`, `Action`, etc.
+- Attachment Support: Easily attach files from local disk, embedded filesystems, IOFS filesystems, or `io.Reader`/`io.ReadSeeker`.
+- Customizable Email Content: Allows setting greetings, salutations, and product information for a personalized experience.
+- Responsive HTML Template: Automatically formats emails with a clean, responsive design compatible with most email clients.
 
 ## Installation
 To install Go-Mailer, run the following command:
@@ -74,6 +77,11 @@ The fluent HTML message builder provides a chainable API to construct HTML email
 - `Greeting(string)`: Sets a greeting line at the top of the email.
 - `Salutation(string)`: Sets a salutation line at the bottom of the email.
 - `Product(mailer.Product)`: Sets product information for the email, which can be used in the footer.
+- `AttachFile(string, ...mailer.FileOption)`: Attaches a file from the local disk.
+- `AttachFromEmbedFS(string, *embed.FS, ...mailer.FileOption)`: Attaches a file from an embedded filesystem.
+- `AttachFromIOFS(string, fs.FS, ...mailer.FileOption)`: Attaches a file from an IOFS filesystem.
+- `AttachReader(string, io.Reader, ...mailer.FileOption)`: Attaches a file from an `io.Reader`.
+- `AttachReadSeeker(string, io.ReadSeeker, ...mailer.FileOption)`: Attaches a file from an `io.ReadSeeker`.
 
 The builder automatically formats the email with a clean, responsive HTML template, ensuring compatibility with most email clients.
 
