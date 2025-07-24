@@ -1,0 +1,16 @@
+[GoMailer] ( https://github.com/ahmadfaizk/go-mailer )
+
+************
+Hello,
+************
+
+Thank you for signing up for our service!
+
+We're glad to have you on board.
+
+If you have any questions, feel free to reach out to our support team.
+
+Best regards,
+GoMailer
+
+© 2025 GoMailer. All rights reserved.

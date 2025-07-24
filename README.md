@@ -81,8 +81,10 @@ The fluent HTML message builder provides a chainable API to construct HTML email
 - `Greeting(string)`: Sets a greeting line at the top of the email.
 - `Line(string)`: Adds a plain text line to the email body.
 - `Linef(string, ...interface{})`: Adds a formatted line to the email body.
+- `Preheader(string)`: Sets a preheader text that appears in the email preview.
 - `Product(mailer.Product)`: Sets product information for the email, which can be used in the footer.
 - `Salutation(string)`: Sets a salutation line at the bottom of the email.
+- `Table(mailer.Table)`: Adds a table to the email body, which can be used to display structured data.
 - `Theme(string)`: Sets the theme for the email. Supported themes are "default" and "plain".
 
 The builder automatically formats the email with a clean, responsive HTML template, ensuring compatibility with most email clients.
