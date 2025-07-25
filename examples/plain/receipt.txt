@@ -20,7 +20,7 @@ We thank you for your purchase.
 Best regards,
 Go-Mailgen
 
-If you're having trouble clicking the "Go to Dashboard" button, copy and paste the URL below into your web browser: https://example.com/dashboard
+If you're having trouble clicking the "Go to Dashboard" button, copy and paste the URL below into your web browser:
 
 https://example.com/dashboard
 

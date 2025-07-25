@@ -17,7 +17,7 @@ Need help, or have questions? Just reply to this email, we'd love to help.
 Best regards,
 Go-Mailgen
 
-If you're having trouble clicking the "Get Started" button, copy and paste the URL below into your web browser: https://example.com/get-started
+If you're having trouble clicking the "Get Started" button, copy and paste the URL below into your web browser:
 
 https://example.com/get-started
 

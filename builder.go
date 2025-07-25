@@ -51,8 +51,9 @@ type Action struct {
 
 // Fallback represents a fallback action in the email message.
 type Fallback struct {
-	Text string
-	Link string
+	Text       string
+	Link       string
+	actionText string
 }
 
 // Builder represents an email message with various fields such as subject, recipients, and content.
@@ -303,8 +304,8 @@ func (b *Builder) Action(text, link string, cfg ...Action) *Builder {
 	b.components = append(b.components, action)
 	if !noFallback {
 		fallback := &Fallback{
-			Link: action.Link,
-			Text: strings.ReplaceAll(b.fallbackFormat, "[ACTION]", action.Text),
+			Link:       action.Link,
+			actionText: action.Text,
 		}
 		b.fallbacks = append(b.fallbacks, fallback)
 	}
@@ -365,6 +366,7 @@ func (b *Builder) Table(table Table) *Builder {
 // It processes all the components, actions, and other fields set in the Builder.
 // Returns an error if there is an issue generating the HTML or plaintext content.
 func (b *Builder) Build() (Message, error) {
+	b.beforeBuild()
 	html, err := b.generateHTML()
 	if err != nil {
 		return nil, err
@@ -382,6 +384,12 @@ func (b *Builder) Build() (Message, error) {
 		html:      html,
 		plainText: plainText,
 	}, nil
+}
+
+func (b *Builder) beforeBuild() {
+	for _, fallback := range b.fallbacks {
+		fallback.Text = strings.ReplaceAll(b.fallbackFormat, "[ACTION]", fallback.actionText)
+	}
 }
 
 type templateData struct {

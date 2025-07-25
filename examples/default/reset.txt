@@ -15,7 +15,7 @@ If you did not request a password reset, no further action is required on your p
 Best regards,
 Go-Mailgen
 
-If you're having trouble clicking the "Reset your password" button, copy and paste the URL below into your web browser: https://example.com/reset-password
+If you're having trouble clicking the "Reset your password" button, copy and paste the URL below into your web browser:
 
 https://example.com/reset-password
 
