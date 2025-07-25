@@ -5,7 +5,7 @@ import (
 	"testing"
 	texttemplate "text/template"
 
-	"github.com/ahmadfaizk/go-mailgen/component"
+	"github.com/afkdevs/go-mailgen/component"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

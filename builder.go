@@ -10,8 +10,8 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/ahmadfaizk/go-mailgen/component"
-	"github.com/ahmadfaizk/go-mailgen/templates"
+	"github.com/afkdevs/go-mailgen/component"
+	"github.com/afkdevs/go-mailgen/templates"
 	"github.com/vanng822/go-premailer/premailer"
 )
 
@@ -91,7 +91,7 @@ func newDefaultBuilder() *Builder {
 		salutation:    "Best regards",
 		product: Product{
 			Name:      "Go-Mailgen",
-			Link:      "https://github.com/ahmadfaizk/go-mailgen",
+			Link:      "https://github.com/afkdevs/go-mailgen",
 			Copyright: fmt.Sprintf("© %d Go-Mailgen. All rights reserved.", time.Now().Year()),
 		},
 		fallbackFormat: "If you're having trouble clicking the \"[ACTION]\" button, copy and paste the URL below into your web browser:",
@@ -127,7 +127,7 @@ func (b *Builder) clone() *Builder {
 //	mailgen.SetDefault(mailgen.New().
 //		Product(mailgen.Product{
 //			Name: "Go-Mailgen",
-//			Link: "https://github.com/ahmadfaizk/go-mailgen",
+//			Link: "https://github.com/afkdevs/go-mailgen",
 //			Logo: "https://upload.wikimedia.org/wikipedia/commons/0/05/Go_Logo_Blue.svg",
 //		}).
 //		Theme("default"))

@@ -9,7 +9,7 @@ import (
 	texttemplate "text/template"
 	"unicode"
 
-	"github.com/ahmadfaizk/go-mailgen/component"
+	"github.com/afkdevs/go-mailgen/component"
 )
 
 //go:embed default/*
