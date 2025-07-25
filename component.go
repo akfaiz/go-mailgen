@@ -9,8 +9,11 @@ import (
 	"unicode"
 )
 
+// Component represents a part of the email message, such as a button, line, or table.
 type Component interface {
+	// HTML generates the HTML representation of the component using the provided template.
 	HTML(tmpl *htmltemplate.Template) (string, error)
+	// PlainText generates the plain text representation of the component.
 	PlainText() (string, error)
 }
 
@@ -18,30 +21,66 @@ var _ Component = &Table{}
 var _ Component = &Action{}
 var _ Component = &Line{}
 
+// Action represents a button or link in the email.
 type Action struct {
-	Text         string
-	Link         string
-	Color        string
-	NoFallback   bool // If true fallbacks are not used
+	// Text is the text displayed on the button.
+	Text string
+	// Link is the URL the button points to.
+	Link string
+	// Color is hex color code for the button, e.g. "#3869D4".
+	Color string
+	// NoFallback if true, the action will not have a fallback text.
+	NoFallback   bool
 	FallbackText string
 }
 
+// Line represents a simple text line in the email.
 type Line struct {
 	Text string
 }
 
+// Table represents a structured table in the email.
+// It contains data entries and column definitions.
+//
+// Example usage:
+//
+//	table := mailgen.Table{
+//	    Data: [][]mailgen.Entry{
+//	        {
+//	            {"Key": "name", "Value": "John Doe"},
+//	            {"Key": "email", "Value": "john@example.com"},
+//	        },
+//	    },
+//	    Columns: mailgen.Columns{
+//	        CustomWidth: map[string]string{
+//	            "name":  "200px",
+//	            "email": "300px",
+//	        },
+//	        CustomAlign: map[string]string{
+//	            "name":  "left",
+//	            "email": "right",
+//	        },
+//	    },
+//	}
 type Table struct {
-	Data    [][]Entry
+	// Data contains the rows of the table, each row is a slice of Entry.
+	// Each Entry has a Key and Value, where Key is the column name.
+	Data [][]Entry
+	// Columns defines column properties like width and alignment.
 	Columns Columns
 }
 
+// Entry represents a single entry in the table with a key and value.
 type Entry struct {
 	Key   string
 	Value string
 }
 
+// Columns defines the structure of the table columns.
 type Columns struct {
+	// CustomWidth allows setting specific widths for columns.
 	CustomWidth map[string]string
+	// CustomAlign allows setting specific alignments for columns.
 	CustomAlign map[string]string
 }
 
