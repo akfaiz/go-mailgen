@@ -1,0 +1,14 @@
+root = true
+
+[*.md]
+trim_trailing_whitespace = false
+max_line_length = 80
+
+[*.txt]
+trim_trailing_whitespace = false
+max_line_length = 80
+
+[*.{html,css}]
+indent_size = 2
+tab_width = 2
+max_line_length = 120

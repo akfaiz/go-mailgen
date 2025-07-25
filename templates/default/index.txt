@@ -1,0 +1,22 @@
+{{if .Preheader}}
+{{.Preheader}}
+{{end}}
+
+[{{.Product.Name}}] ( {{.Product.URL}} )
+
+{{.Greeting}}
+
+{{range .ComponentsText}}
+{{.}}
+{{end}}
+
+{{.Salutation}},
+{{.Product.Name}}
+
+{{range .Actions}}
+If you're having trouble clicking the "{{.Text}}" button, copy and paste the URL below into your web browser:
+
+{{.URL}}
+{{end}}
+
+{{.Product.Copyright}}

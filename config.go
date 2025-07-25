@@ -1,5 +1,21 @@
 package mailer
 
+import "fmt"
+
+// Address represents an email address with an optional name.
+type Address struct {
+	Name    string
+	Address string
+}
+
+// String returns a string representation of the email message.
+func (a Address) String() string {
+	if a.Name == "" {
+		return a.Address
+	}
+	return fmt.Sprintf("%s <%s>", a.Name, a.Address)
+}
+
 type config struct {
 	theme   string
 	from    Address

@@ -15,40 +15,12 @@ import (
 	"github.com/vanng822/go-premailer/premailer"
 )
 
-// Address represents an email address with an optional name.
-type Address struct {
-	Name    string
-	Address string
-}
-
-// Action represents an action button in the email message.
-type Action struct {
-	Instruction string
-	Text        string
-	URL         string
-	Color       string
-}
-
 // Product represents the product information used in the email.
 // It includes the product name, logo URL, product URL, and copyright information.
 type Product struct {
 	Name      string
 	URL       string
 	Copyright string
-}
-
-// Table represents a simple table structure for the email message.
-type Table struct {
-	Instruction string
-	Headers     []TableHeader
-	Rows        [][]string
-}
-
-// TableHeader represents a header in the table.
-type TableHeader struct {
-	Text  string
-	Width string
-	Align string
 }
 
 // Message represents an email message with various fields such as subject, recipients, and content.
@@ -65,11 +37,9 @@ type Message struct {
 	preheader  string
 	greeting   string
 	salutation string
-	introLines []string
-	outroLines []string
-	action     *Action
+	actions    []*Action
+	components []Component
 	product    Product
-	table      *Table
 
 	files           []file
 	filesEmbedFS    []fileEmbedFS
@@ -178,11 +148,7 @@ func (m *Message) Salutation(salutation string) *Message {
 // Line adds a line of text to the email message.
 // If an action is set, it will be added to the outro lines; otherwise, it will be added to the intro lines.
 func (m *Message) Line(text string) *Message {
-	if m.action == nil {
-		m.introLines = append(m.introLines, text)
-	} else {
-		m.outroLines = append(m.outroLines, text)
-	}
+	m.components = append(m.components, &Line{Text: text})
 	return m
 }
 
@@ -194,22 +160,21 @@ func (m *Message) Linef(format string, args ...interface{}) *Message {
 }
 
 // Action sets the action text and URL for the email message.
-// It can also accept a color for the button, defaulting to "primary" if not provided.
-//
-// Supporting colors are: primary, green, and red.
+// It creates a button in the email that links to the specified URL.
+// The action can also include an optional instruction and color for the button.
 func (m *Message) Action(text, url string, act ...Action) *Message {
 	action := Action{
 		Text:  text,
 		URL:   url,
-		Color: "primary",
+		Color: "#3869D4",
 	}
 	if len(act) > 0 {
-		action.Instruction = act[0].Instruction
 		if act[0].Color != "" {
 			action.Color = act[0].Color
 		}
 	}
-	m.action = &action
+	m.actions = append(m.actions, &action)
+	m.components = append(m.components, &action)
 	return m
 }
 
@@ -259,7 +224,7 @@ func (m *Message) Table(table Table) *Message {
 		return m // No table to add
 	}
 
-	m.table = &table
+	m.components = append(m.components, &table)
 	return m
 }
 
@@ -311,16 +276,14 @@ func (m *Message) AttachReadSeeker(name string, readSeeker io.ReadSeeker, opts .
 }
 
 type templateData struct {
-	Theme       string
-	Preheader   string
-	Greeting    string
-	Salutation  string
-	IntroLines  []string
-	OutroLines  []string
-	Action      *Action
-	Product     Product
-	Table       *Table
-	TableString string // For plain text representation of the table
+	Theme          string
+	Preheader      string
+	Greeting       string
+	Salutation     string
+	ComponentsHTML []htmltemplate.HTML
+	ComponentsText []string
+	Actions        []*Action // Used for sub-copy in HTML
+	Product        Product
 }
 
 //go:embed templates/default/*
@@ -329,40 +292,58 @@ var defaultTmplFS embed.FS
 //go:embed templates/plain/*
 var plainTmplFS embed.FS
 
-var defaultHtmlTmpl = htmltemplate.Must(htmltemplate.New("message.html").
+var defaultHtmlTmpl = htmltemplate.Must(htmltemplate.New("index.html").
 	ParseFS(defaultTmplFS, "templates/default/*.html"),
 )
-var defaultPlainTextTmpl = texttemplate.Must(texttemplate.New("message.txt").
+var defaultPlainTextTmpl = texttemplate.Must(texttemplate.New("index.txt").
 	ParseFS(defaultTmplFS, "templates/default/*.txt"),
 )
-var plainHtmlTmpl = htmltemplate.Must(htmltemplate.New("message.html").
+var plainHtmlTmpl = htmltemplate.Must(htmltemplate.New("index.html").
 	ParseFS(plainTmplFS, "templates/plain/*.html"),
 )
-var plainPlainTextTmpl = texttemplate.Must(texttemplate.New("message.txt").
+var plainPlainTextTmpl = texttemplate.Must(texttemplate.New("index.txt").
 	ParseFS(plainTmplFS, "templates/plain/*.txt"),
 )
 
+func (m *Message) htmlTemplate() *htmltemplate.Template {
+	if m.theme == "plain" {
+		return plainHtmlTmpl
+	}
+	return defaultHtmlTmpl
+}
+
+func (m *Message) plainTextTemplate() *texttemplate.Template {
+	if m.theme == "plain" {
+		return plainPlainTextTmpl
+	}
+	return defaultPlainTextTmpl
+}
+
 // GenerateHTML generates the HTML content for the email message using the provided template.
 func (m *Message) GenerateHTML() (string, error) {
+	tmpl := m.htmlTemplate()
+
+	var componentsHTML []htmltemplate.HTML
+	for _, comp := range m.components {
+		html, err := comp.HTML(tmpl)
+		if err != nil {
+			return "", err
+		}
+		componentsHTML = append(componentsHTML, htmltemplate.HTML(html))
+	}
+
 	data := templateData{
-		Theme:      m.theme,
-		Preheader:  m.preheader,
-		Greeting:   m.greeting,
-		Salutation: m.salutation,
-		IntroLines: m.introLines,
-		OutroLines: m.outroLines,
-		Action:     m.action,
-		Product:    m.product,
-		Table:      m.table,
+		Theme:          m.theme,
+		Preheader:      m.preheader,
+		Greeting:       m.greeting,
+		Salutation:     m.salutation,
+		Product:        m.product,
+		ComponentsHTML: componentsHTML,
+		Actions:        m.actions,
 	}
 	var buf bytes.Buffer
-	var tmpl *htmltemplate.Template
-	if m.theme == "plain" {
-		tmpl = plainHtmlTmpl
-	} else {
-		tmpl = defaultHtmlTmpl
-	}
-	if err := tmpl.ExecuteTemplate(&buf, "message.html", data); err != nil {
+
+	if err := tmpl.ExecuteTemplate(&buf, "index.html", data); err != nil {
 		return "", err
 	}
 	prem, err := premailer.NewPremailerFromBytes(buf.Bytes(), premailer.NewOptions())
@@ -378,26 +359,22 @@ func (m *Message) GenerateHTML() (string, error) {
 
 // GeneratePlaintext generates the plaintext content for the email message using the provided template.
 func (m *Message) GeneratePlaintext() (string, error) {
-	data := templateData{
-		Greeting:   m.greeting,
-		Preheader:  m.preheader,
-		Salutation: m.salutation,
-		IntroLines: m.introLines,
-		OutroLines: m.outroLines,
-		Action:     m.action,
-		Product:    m.product,
+	tmpl := m.plainTextTemplate()
+	var componentsText []string
+	for _, comp := range m.components {
+		text := comp.PlainText()
+		componentsText = append(componentsText, text)
 	}
-	if m.table != nil {
-		data.TableString = m.table.String()
+
+	data := templateData{
+		Greeting:       boxString(fmt.Sprintf("%s,", m.greeting)),
+		Preheader:      m.preheader,
+		Salutation:     m.salutation,
+		Product:        m.product,
+		ComponentsText: componentsText,
 	}
 	var buf bytes.Buffer
-	var tmpl *texttemplate.Template
-	if m.theme == "plain" {
-		tmpl = plainPlainTextTmpl
-	} else {
-		tmpl = defaultPlainTextTmpl
-	}
-	if err := tmpl.ExecuteTemplate(&buf, "message.txt", data); err != nil {
+	if err := tmpl.ExecuteTemplate(&buf, "index.txt", data); err != nil {
 		return "", err
 	}
 	text := buf.String()
@@ -442,79 +419,24 @@ func (m *Message) GetBcc() []string {
 	return m.bcc
 }
 
-// String returns a string representation of the email message.
-func (a Address) String() string {
-	if a.Name == "" {
-		return a.Address
-	}
-	return fmt.Sprintf("%s <%s>", a.Name, a.Address)
-}
-
-// String returns a string representation of the table.
-func (t Table) String() string {
-	var sb strings.Builder
-
-	// Add optional instruction
-	if t.Instruction != "" {
-		sb.WriteString(t.Instruction + "\n\n")
-	}
-
-	// Determine column widths
-	colWidths := make([]int, len(t.Headers))
-	for i, header := range t.Headers {
-		colWidths[i] = len(header.Text)
-	}
-	for _, row := range t.Rows {
-		for i, cell := range row {
-			if len(cell) > colWidths[i] {
-				colWidths[i] = len(cell)
-			}
+func boxString(s string) string {
+	// Find the max line length (in case of multi-line input)
+	lines := strings.Split(s, "\n")
+	maxLen := 0
+	for _, line := range lines {
+		if len(line) > maxLen {
+			maxLen = len(line)
 		}
 	}
 
-	// Write headers
-	for i, header := range t.Headers {
-		sb.WriteString(t.padCell(header.Text, colWidths[i], header.Align))
-		if i < len(t.Headers)-1 {
-			sb.WriteString(" | ")
-		}
-	}
-	sb.WriteString("\n")
+	// The border should match the longest line length
+	border := strings.Repeat("*", maxLen)
 
-	// Write separator line
-	for i, width := range colWidths {
-		sb.WriteString(strings.Repeat("-", width))
-		if i < len(colWidths)-1 {
-			sb.WriteString("-+-")
-		}
-	}
-	sb.WriteString("\n")
+	// Combine
+	var b strings.Builder
+	b.WriteString(border + "\n")
+	b.WriteString(s + "\n")
+	b.WriteString(border)
 
-	// Write rows
-	for _, row := range t.Rows {
-		for i, cell := range row {
-			align := t.Headers[i].Align
-			sb.WriteString(t.padCell(cell, colWidths[i], align))
-			if i < len(row)-1 {
-				sb.WriteString(" | ")
-			}
-		}
-		sb.WriteString("\n")
-	}
-
-	return sb.String()
-}
-
-func (t Table) padCell(text string, width int, align string) string {
-	switch strings.ToLower(align) {
-	case "right":
-		return fmt.Sprintf("%*s", width, text)
-	case "center":
-		padding := width - len(text)
-		left := padding / 2
-		right := padding - left
-		return strings.Repeat(" ", left) + text + strings.Repeat(" ", right)
-	default: // left
-		return fmt.Sprintf("%-*s", width, text)
-	}
+	return b.String()
 }

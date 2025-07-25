@@ -45,3 +45,8 @@ coverage-check:
 	else \
 		echo "Coverage is sufficient: $$COVERAGE%"; \
 	fi
+
+.PHONY: update-examples
+update-examples:
+	@echo "Updating example files..."
+	go run ./examples/main.go

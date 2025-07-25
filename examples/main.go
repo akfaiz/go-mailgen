@@ -17,7 +17,7 @@ func main() {
 		"welcome": welcomeMessage(),
 		"receipt": receiptMessage(),
 	}
-	themes := []string{"default", "plain"}
+	themes := []string{"default"}
 
 	for _, theme := range themes {
 		for name, msg := range messages {
@@ -69,8 +69,8 @@ func receiptMessage() *mailer.Message {
 		Subject("Your order receipt").
 		To("recipient@example.com").
 		Line("Thank you for your order!").
+		Line("Here are the details of your purchase:").
 		Table(mailer.Table{
-			Instruction: "Here are the details of your order:",
 			Headers: []mailer.TableHeader{
 				{Text: "Item", Align: "left", Width: "50%"},
 				{Text: "Count", Align: "right", Width: "25%"},
@@ -81,6 +81,7 @@ func receiptMessage() *mailer.Message {
 				{"Widget B", "1", "$15.00"},
 			},
 		}).
-		Action("View Order", "https://example.com/order", mailer.Action{Instruction: "Click here to view your order"}).
+		Line("Click the button below to view your order details.").
+		Action("View Order", "https://example.com/order").
 		Line("If you have any questions, feel free to contact us.")
 }

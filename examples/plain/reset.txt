@@ -2,9 +2,9 @@ Use this link to reset your password. The link is only valid for 24 hours.
 
 [GoMailer] ( https://github.com/ahmadfaizk/go-mailer )
 
-************
+******
 Hello,
-************
+******
 
 Click the button below to reset your password
 
