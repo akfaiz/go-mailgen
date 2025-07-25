@@ -43,10 +43,10 @@ type Columns struct {
 
 // Action represents an action button in the email message.
 type Action struct {
-	Text            string
-	Link            string
-	Color           string // Default color is #3869D4
-	DisableFallback bool   // If true, disables fallback for the action button
+	Text       string
+	Link       string
+	Color      string // Default color is #3869D4
+	NoFallback bool   // If true, disables fallback for the action button
 }
 
 // Fallback represents a fallback action in the email message.
@@ -64,15 +64,16 @@ type Builder struct {
 	cc      []string
 	bcc     []string
 
-	textDirection string
-	theme         string
-	preheader     string
-	greeting      string
-	name          string
-	salutation    string
-	components    []component.Component
-	fallbacks     []*Fallback
-	product       Product
+	textDirection  string
+	theme          string
+	preheader      string
+	greeting       string
+	name           string
+	salutation     string
+	components     []component.Component
+	fallbacks      []*Fallback
+	fallbackFormat string
+	product        Product
 }
 
 var defaultBuilder atomic.Pointer[Builder]
@@ -92,25 +93,27 @@ func newDefaultBuilder() *Builder {
 			Link:      "https://github.com/ahmadfaizk/go-mailgen",
 			Copyright: fmt.Sprintf("© %d Go-Mailgen. All rights reserved.", time.Now().Year()),
 		},
+		fallbackFormat: "If you're having trouble clicking the \"[ACTION]\" button, copy and paste the URL below into your web browser:",
 	}
 }
 
 func (b *Builder) clone() *Builder {
 	return &Builder{
-		textDirection: b.textDirection,
-		subject:       b.subject,
-		from:          b.from,
-		to:            append([]string{}, b.to...),
-		cc:            append([]string{}, b.cc...),
-		bcc:           append([]string{}, b.bcc...),
-		theme:         b.theme,
-		preheader:     b.preheader,
-		greeting:      b.greeting,
-		name:          b.name,
-		salutation:    b.salutation,
-		fallbacks:     append([]*Fallback{}, b.fallbacks...),
-		components:    append([]component.Component{}, b.components...),
-		product:       b.product,
+		textDirection:  b.textDirection,
+		subject:        b.subject,
+		from:           b.from,
+		to:             append([]string{}, b.to...),
+		cc:             append([]string{}, b.cc...),
+		bcc:            append([]string{}, b.bcc...),
+		theme:          b.theme,
+		fallbackFormat: b.fallbackFormat,
+		preheader:      b.preheader,
+		greeting:       b.greeting,
+		name:           b.name,
+		salutation:     b.salutation,
+		fallbacks:      append([]*Fallback{}, b.fallbacks...),
+		components:     append([]component.Component{}, b.components...),
+		product:        b.product,
 	}
 }
 
@@ -220,6 +223,20 @@ func (b *Builder) TextDirection(direction string) *Builder {
 	return b
 }
 
+// FallbackFormat sets the fallback format for action buttons in the email message.
+// This format is used when the email client does not support HTML buttons.
+//
+// Example usage:
+//
+//	message.FallbackFormat("If you're having trouble clicking the \"[ACTION]\" button, copy and paste the URL below into your web browser:")
+func (b *Builder) FallbackFormat(format string) *Builder {
+	if format == "" {
+		return b // No format provided, do nothing
+	}
+	b.fallbackFormat = format
+	return b
+}
+
 // Preheader sets the preheader text for the email message.
 // The preheader is a short summary text that follows the subject line when an email is viewed in the inbox.
 // It is often used to provide additional context or a preview of the email content.
@@ -276,24 +293,18 @@ func (b *Builder) Action(text, link string, cfg ...Action) *Builder {
 		Link:  link,
 		Color: "#3869D4",
 	}
-	disableFallback := false
+	noFallback := false
 	if len(cfg) > 0 {
-		if cfg[0].Text != "" {
-			action.Text = cfg[0].Text
-		}
-		if cfg[0].Link != "" {
-			action.Link = cfg[0].Link
-		}
 		if cfg[0].Color != "" {
 			action.Color = cfg[0].Color
 		}
-		disableFallback = cfg[0].DisableFallback
+		noFallback = cfg[0].NoFallback
 	}
 	b.components = append(b.components, action)
-	if !disableFallback {
+	if !noFallback {
 		fallback := &Fallback{
 			Link: action.Link,
-			Text: fmt.Sprintf("If you're having trouble clicking the \"%s\" button, copy and paste the URL below into your web browser: %s", action.Text, action.Link),
+			Text: strings.ReplaceAll(b.fallbackFormat, "[ACTION]", action.Text),
 		}
 		b.fallbacks = append(b.fallbacks, fallback)
 	}
@@ -493,15 +504,12 @@ func (b *Builder) greetingLine() string {
 		return fmt.Sprintf("%s %s", b.greeting, b.name)
 	}
 	if b.greeting == "" {
-		return "Hi"
+		return defaultBuilder.Load().greeting
 	}
 	return b.greeting
 }
 
 func (t Table) component() component.Component {
-	if len(t.Data) == 0 {
-		return nil
-	}
 	tableComponent := component.Table{
 		Data: make([][]component.Entry, len(t.Data)),
 		Columns: component.Columns{
