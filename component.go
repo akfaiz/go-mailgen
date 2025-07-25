@@ -78,8 +78,6 @@ func (t Table) HTML(tmpl *htmltemplate.Template) (string, error) {
 func (t Table) PlainText() string {
 	var sb strings.Builder
 
-	// Add optional instruction
-
 	// Determine column widths
 	colWidths := make([]int, len(t.Headers))
 	for i, header := range t.Headers {
