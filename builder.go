@@ -63,14 +63,15 @@ type Builder struct {
 	cc      []string
 	bcc     []string
 
-	theme      string
-	preheader  string
-	greeting   string
-	name       string
-	salutation string
-	components []component.Component
-	fallbacks  []*Fallback
-	product    Product
+	textDirection string
+	theme         string
+	preheader     string
+	greeting      string
+	name          string
+	salutation    string
+	components    []component.Component
+	fallbacks     []*Fallback
+	product       Product
 }
 
 var defaultBuilder atomic.Pointer[Builder]
@@ -81,9 +82,10 @@ func init() {
 
 func newDefaultBuilder() *Builder {
 	return &Builder{
-		theme:      "default",
-		greeting:   "Hi",
-		salutation: "Best regards",
+		textDirection: "ltr",
+		theme:         "default",
+		greeting:      "Hi",
+		salutation:    "Best regards",
 		product: Product{
 			Name:      "Go-Mailgen",
 			Link:      "https://github.com/ahmadfaizk/go-mailgen",
@@ -94,18 +96,20 @@ func newDefaultBuilder() *Builder {
 
 func (b *Builder) clone() *Builder {
 	return &Builder{
-		subject:    b.subject,
-		from:       b.from,
-		to:         append([]string{}, b.to...),
-		cc:         append([]string{}, b.cc...),
-		bcc:        append([]string{}, b.bcc...),
-		theme:      b.theme,
-		preheader:  b.preheader,
-		greeting:   b.greeting,
-		salutation: b.salutation,
-		fallbacks:  append([]*Fallback{}, b.fallbacks...),
-		components: append([]component.Component{}, b.components...),
-		product:    b.product,
+		textDirection: b.textDirection,
+		subject:       b.subject,
+		from:          b.from,
+		to:            append([]string{}, b.to...),
+		cc:            append([]string{}, b.cc...),
+		bcc:           append([]string{}, b.bcc...),
+		theme:         b.theme,
+		preheader:     b.preheader,
+		greeting:      b.greeting,
+		name:          b.name,
+		salutation:    b.salutation,
+		fallbacks:     append([]*Fallback{}, b.fallbacks...),
+		components:    append([]component.Component{}, b.components...),
+		product:       b.product,
 	}
 }
 
@@ -202,6 +206,16 @@ func (b *Builder) Bcc(bcc string, others ...string) *Builder {
 // Supported themes are "default" and "plain".
 func (b *Builder) Theme(theme string) *Builder {
 	b.theme = theme
+	return b
+}
+
+// TextDirection sets the text direction for the email message.
+// It can be "ltr" (left-to-right) or "rtl" (right-to-left).
+func (b *Builder) TextDirection(direction string) *Builder {
+	if direction != "ltr" && direction != "rtl" {
+		return b // Invalid direction, do nothing
+	}
+	b.textDirection = direction
 	return b
 }
 
@@ -305,13 +319,25 @@ func (b *Builder) Product(product Product) *Builder {
 // Example usage:
 //
 //	message.Table(mailer.Table{
-//		Headers: []mailer.TableHeader{
-//			{Text: "Item", Align: "left", Width: "70%"},
-//			{Text: "Price", Align: "right", Width: "30%"},
+//		Data: [][]mailer.Entry{
+//			{
+//				{Key: "Name", Value: "John Doe"},
+//				{Key: "Email", Value: "john.doe@example.com"},
+//			},
+//			{
+//				{Key: "Name", Value: "Jane Smith"},
+//				{Key: "Email", Value: "jane.smith@example.com"},
+//			},
 //		},
-//		Rows: [][]string{
-//			{"Widget A", "$10.00"},
-//			{"Widget B", "$15.00"},
+//		Columns: mailer.Columns{
+//			CustomWidth: map[string]string{
+//				"Name":  "50%",
+//				"Email": "50%",
+//			},
+//			CustomAlign: map[string]string{
+//				"Name":  "left",
+//				"Email": "right",
+//			},
 //		},
 //	})
 func (b *Builder) Table(table Table) *Builder {
@@ -347,7 +373,7 @@ func (b *Builder) Build() (Message, error) {
 }
 
 type templateData struct {
-	Theme          string
+	TextDirection  string
 	Preheader      string
 	Greeting       string
 	Salutation     string
@@ -377,7 +403,7 @@ func (b *Builder) generateHTML() (string, error) {
 	}
 
 	data := templateData{
-		Theme:          b.theme,
+		TextDirection:  b.textDirection,
 		Preheader:      b.preheader,
 		Greeting:       b.greetingLine(),
 		Salutation:     b.salutation,
@@ -435,6 +461,9 @@ func (b *Builder) generatePlaintext() (string, error) {
 
 func (b *Builder) greetingLine() string {
 	if b.name != "" {
+		if b.textDirection == "rtl" {
+			return fmt.Sprintf("%s %s", b.name, b.greeting)
+		}
 		return fmt.Sprintf("%s %s", b.greeting, b.name)
 	}
 	if b.greeting == "" {
