@@ -1,0 +1,20 @@
+{{if .Preheader}}
+{{.Preheader}}
+{{end}}
+
+{{template "header" .}}
+
+{{boxString (concat .Greeting ",")}}
+
+{{range .ComponentsText}}
+{{.}}
+{{end}}
+
+{{.Salutation}},
+{{.Product.Name}}
+
+{{range .Actions}}
+{{template "subcopy" .}}
+{{end}}
+
+{{template "footer" .}}

@@ -1,0 +1,9 @@
+{{define "header"}}
+{{if .Product.Name}}
+{{if .Product.URL}}
+[{{.Product.Name}}] ( {{.Product.URL}} )
+{{else}}
+[{{.Product.Name}}]
+{{end}}
+{{end}}
+{{end}}

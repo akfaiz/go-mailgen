@@ -1,7 +1,9 @@
 package mailgen_test
 
 import (
+	"fmt"
 	"testing"
+	"time"
 
 	"github.com/ahmadfaizk/go-mailgen"
 	"github.com/stretchr/testify/assert"
@@ -223,29 +225,29 @@ func TestBuilder_To(t *testing.T) {
 	}
 }
 
-func TestBuilder_CC(t *testing.T) {
+func TestBuilder_Cc(t *testing.T) {
 	testCases := []testCase{
 		{
 			name: "set single CC",
 			builderFunc: func() *mailgen.Builder {
-				return mailgen.New().CC("cc1@example.com")
+				return mailgen.New().Cc("cc1@example.com")
 			},
 			expectError: false,
 			expectFunc: func(msg mailgen.Message) {
-				assert.Len(t, msg.CC(), 1, "CC should contain one recipient")
-				assert.Contains(t, msg.CC(), "cc1@example.com", "CC should contain the added recipient")
+				assert.Len(t, msg.Cc(), 1, "CC should contain one recipient")
+				assert.Contains(t, msg.Cc(), "cc1@example.com", "CC should contain the added recipient")
 			},
 		},
 		{
 			name: "set multiple CCs",
 			builderFunc: func() *mailgen.Builder {
-				return mailgen.New().CC("cc2@example.com", "cc3@example.com")
+				return mailgen.New().Cc("cc2@example.com", "cc3@example.com")
 			},
 			expectError: false,
 			expectFunc: func(msg mailgen.Message) {
-				assert.Len(t, msg.CC(), 2, "CC should contain two recipients")
-				assert.Contains(t, msg.CC(), "cc2@example.com", "CC should contain the added recipient")
-				assert.Contains(t, msg.CC(), "cc3@example.com", "CC should contain the added recipient")
+				assert.Len(t, msg.Cc(), 2, "CC should contain two recipients")
+				assert.Contains(t, msg.Cc(), "cc2@example.com", "CC should contain the added recipient")
+				assert.Contains(t, msg.Cc(), "cc3@example.com", "CC should contain the added recipient")
 			},
 		},
 		{
@@ -255,17 +257,17 @@ func TestBuilder_CC(t *testing.T) {
 			},
 			expectError: false,
 			expectFunc: func(msg mailgen.Message) {
-				assert.Empty(t, msg.CC(), "CC should be empty when no recipients are set")
+				assert.Empty(t, msg.Cc(), "CC should be empty when no recipients are set")
 			},
 		},
 		{
 			name: "set empty CC",
 			builderFunc: func() *mailgen.Builder {
-				return mailgen.New().CC("")
+				return mailgen.New().Cc("")
 			},
 			expectError: false,
 			expectFunc: func(msg mailgen.Message) {
-				assert.Empty(t, msg.CC(), "CC should be empty when an empty recipient is set")
+				assert.Empty(t, msg.Cc(), "CC should be empty when an empty recipient is set")
 			},
 		},
 	}
@@ -274,29 +276,29 @@ func TestBuilder_CC(t *testing.T) {
 	}
 }
 
-func TestBuilder_BCC(t *testing.T) {
+func TestBuilder_Bcc(t *testing.T) {
 	testCases := []testCase{
 		{
 			name: "set single BCC",
 			builderFunc: func() *mailgen.Builder {
-				return mailgen.New().BCC("bcc1@example.com")
+				return mailgen.New().Bcc("bcc1@example.com")
 			},
 			expectError: false,
 			expectFunc: func(msg mailgen.Message) {
-				assert.Len(t, msg.BCC(), 1, "BCC should contain one recipient")
-				assert.Contains(t, msg.BCC(), "bcc1@example.com", "BCC should contain the added recipient")
+				assert.Len(t, msg.Bcc(), 1, "BCC should contain one recipient")
+				assert.Contains(t, msg.Bcc(), "bcc1@example.com", "BCC should contain the added recipient")
 			},
 		},
 		{
 			name: "set multiple BCCs",
 			builderFunc: func() *mailgen.Builder {
-				return mailgen.New().BCC("bcc2@example.com", "bcc3@example.com")
+				return mailgen.New().Bcc("bcc2@example.com", "bcc3@example.com")
 			},
 			expectError: false,
 			expectFunc: func(msg mailgen.Message) {
-				assert.Len(t, msg.BCC(), 2, "BCC should contain two recipients")
-				assert.Contains(t, msg.BCC(), "bcc2@example.com", "BCC should contain the added recipient")
-				assert.Contains(t, msg.BCC(), "bcc3@example.com", "BCC should contain the added recipient")
+				assert.Len(t, msg.Bcc(), 2, "BCC should contain two recipients")
+				assert.Contains(t, msg.Bcc(), "bcc2@example.com", "BCC should contain the added recipient")
+				assert.Contains(t, msg.Bcc(), "bcc3@example.com", "BCC should contain the added recipient")
 			},
 		},
 		{
@@ -306,17 +308,17 @@ func TestBuilder_BCC(t *testing.T) {
 			},
 			expectError: false,
 			expectFunc: func(msg mailgen.Message) {
-				assert.Empty(t, msg.BCC(), "BCC should be empty when no recipients are set")
+				assert.Empty(t, msg.Bcc(), "BCC should be empty when no recipients are set")
 			},
 		},
 		{
 			name: "set empty BCC",
 			builderFunc: func() *mailgen.Builder {
-				return mailgen.New().BCC("")
+				return mailgen.New().Bcc("")
 			},
 			expectError: false,
 			expectFunc: func(msg mailgen.Message) {
-				assert.Empty(t, msg.BCC(), "BCC should be empty when an empty recipient is set")
+				assert.Empty(t, msg.Bcc(), "BCC should be empty when an empty recipient is set")
 			},
 		},
 	}
@@ -502,6 +504,38 @@ func TestBuilder_Product(t *testing.T) {
 				assert.Contains(t, msg.PlainText(), "© 2023 Test Product", "PlainText should contain the product copyright")
 			},
 		},
+		{
+			name: "set product with only name",
+			builderFunc: func() *mailgen.Builder {
+				return mailgen.New().Product(mailgen.Product{
+					Name: "Test Product",
+				})
+			},
+			expectError: false,
+			expectFunc: func(msg mailgen.Message) {
+				defaultCopyright := fmt.Sprintf("© %d Test Product. All rights reserved.", time.Now().Year())
+				assert.Contains(t, msg.HTML(), "Test Product", "HTML should contain the product name")
+				assert.Contains(t, msg.HTML(), defaultCopyright, "HTML should contain the default product copyright")
+				assert.Contains(t, msg.PlainText(), "Test Product", "PlainText should contain the product name")
+				assert.Contains(t, msg.PlainText(), defaultCopyright, "PlainText should contain the default product copyright")
+			},
+		},
+		{
+			name: "set product with only copyright",
+			builderFunc: func() *mailgen.Builder {
+				return mailgen.New().Product(mailgen.Product{
+					Copyright: "© 2023 Test Product. All rights reserved.",
+				})
+			},
+			expectError: false,
+			expectFunc: func(msg mailgen.Message) {
+				defaultProductName := "Go-Mailgen"
+				assert.Contains(t, msg.HTML(), defaultProductName, "HTML should contain the default product name")
+				assert.Contains(t, msg.HTML(), "© 2023 Test Product. All rights reserved.", "HTML should contain the product copyright")
+				assert.Contains(t, msg.PlainText(), "© 2023 Test Product. All rights reserved.", "PlainText should contain the product copyright")
+				assert.Contains(t, msg.PlainText(), defaultProductName, "PlainText should contain the default product name")
+			},
+		},
 	}
 	for _, tc := range testCases {
 		tc.run(t)
@@ -514,25 +548,39 @@ func TestBuilder_Table(t *testing.T) {
 			name: "simple table with headers and rows",
 			builderFunc: func() *mailgen.Builder {
 				return mailgen.New().Table(mailgen.Table{
-					Headers: []mailgen.TableHeader{
-						{Text: "Item", Align: "left", Width: "70%"},
-						{Text: "Price"},
+					Data: [][]mailgen.Entry{
+						{{Key: "Item", Value: "Widget A"}, {Key: "Price", Value: "$10.00"}, {Key: "Count", Value: "2"}, {Key: "Total", Value: "$20.00"}},
+						{{Key: "Item", Value: "Widget B"}, {Key: "Price", Value: "$150.00"}, {Key: "Count", Value: "1"}, {Key: "Total", Value: "$150.00"}},
 					},
-					Rows: [][]string{
-						{"Widget A", "$10.00"},
-						{"Widget B", "$15.00"},
+					Columns: mailgen.Columns{
+						CustomAlign: map[string]string{
+							"Item":  "left",
+							"Price": "center",
+							"Count": "center",
+							"Total": "right",
+						},
+						CustomWidth: map[string]string{
+							"Item":  "40%",
+							"Price": "20%",
+							"Count": "20%",
+							"Total": "20%",
+						},
 					},
 				})
 			},
 			expectError: false,
 			expectFunc: func(msg mailgen.Message) {
-				assert.Contains(t, msg.HTML(), "<table", "HTML should contain a table")
-				assert.Contains(t, msg.HTML(), ">Item</", "HTML should contain the Item header")
-				assert.Contains(t, msg.HTML(), ">Widget A</", "HTML should contain the first row item")
-				assert.Contains(t, msg.HTML(), ">$10.00</", "HTML should contain the first row price")
-				assert.Contains(t, msg.PlainText(), "Item", "PlainText should contain the Item header")
-				assert.Contains(t, msg.PlainText(), "Widget A", "PlainText should contain the first row item")
-				assert.Contains(t, msg.PlainText(), "$10.00", "PlainText should contain the first row price")
+				htmlContains := []string{
+					"<table", ">Item</", ">Widget A</", ">$10.00</", ">2</", ">$20.00</", ">Widget B</", ">$150.00</",
+					">1</",
+				}
+				for _, str := range htmlContains {
+					assert.Contains(t, msg.HTML(), str, fmt.Sprintf("HTML should contain '%s'", str))
+				}
+				textContains := []string{"Item", "Widget A", "$10.00", "2", "$20.00", "Widget B", "$150.00", "1"}
+				for _, str := range textContains {
+					assert.Contains(t, msg.PlainText(), str, fmt.Sprintf("PlainText should contain '%s'", str))
+				}
 			},
 		},
 	}
@@ -589,15 +637,21 @@ func TestBuilder_Build(t *testing.T) {
 					Line("Thank you for your purchase!").
 					Line("Below are the details of your order:").
 					Table(mailgen.Table{
-						Headers: []mailgen.TableHeader{
-							{Text: "Item", Align: "left", Width: "70%"},
-							{Text: "Price", Align: "right", Width: "30%"},
+						Data: [][]mailgen.Entry{
+							{{Key: "Item", Value: "Widget A"}, {Key: "Price", Value: "$10.00"}},
+							{{Key: "Item", Value: "Widget B"}, {Key: "Price", Value: "$15.00"}},
+							{{Key: "Item", Value: "Widget C"}, {Key: "Price", Value: "$20.00"}},
+							{{Key: "Item", Value: "Total"}, {Key: "Price", Value: "$45.00"}},
 						},
-						Rows: [][]string{
-							{"Widget A", "$10.00"},
-							{"Widget B", "$15.00"},
-							{"Widget C", "$20.00"},
-							{"Total", "$45.00"},
+						Columns: mailgen.Columns{
+							CustomAlign: map[string]string{
+								"Item":  "left",
+								"Price": "right",
+							},
+							CustomWidth: map[string]string{
+								"Item":  "70%",
+								"Price": "30%",
+							},
 						},
 					}).
 					Line("Click the button below to track your order.").

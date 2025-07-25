@@ -4,12 +4,13 @@ import (
 	"bytes"
 	"fmt"
 	htmltemplate "html/template"
+	"maps"
 	"regexp"
 	"strings"
 	"sync/atomic"
-	texttemplate "text/template"
 	"time"
 
+	"github.com/ahmadfaizk/go-mailgen/component"
 	"github.com/ahmadfaizk/go-mailgen/templates"
 	"github.com/vanng822/go-premailer/premailer"
 )
@@ -20,6 +21,21 @@ type Product struct {
 	Name      string
 	URL       string
 	Copyright string
+}
+
+type Table struct {
+	Data    [][]Entry
+	Columns Columns
+}
+
+type Entry struct {
+	Key   string
+	Value string
+}
+
+type Columns struct {
+	CustomWidth map[string]string
+	CustomAlign map[string]string
 }
 
 // Builder represents an email message with various fields such as subject, recipients, and content.
@@ -35,26 +51,28 @@ type Builder struct {
 	preheader  string
 	greeting   string
 	salutation string
-	actions    []Action
-	components []Component
+	actions    []*component.Action
+	components []component.Component
 	product    Product
 }
 
 var defaultBuilder atomic.Pointer[Builder]
 
 func init() {
-	defaultBuilder.Store(newdefaultBuilder())
+	defaultBuilder.Store(newDefaultBuilder())
 }
 
-func newdefaultBuilder() *Builder {
-	builder := &Builder{}
-	return builder.Theme("default").
-		Greeting("Hello").
-		Salutation("Best regards").
-		Product(Product{
-			Name: "GoMailgen",
-			URL:  "https://github.com/ahmadfaizk/go-mailgen",
-		})
+func newDefaultBuilder() *Builder {
+	return &Builder{
+		theme:      "default",
+		greeting:   "Hello",
+		salutation: "Best regards",
+		product: Product{
+			Name:      "Go-Mailgen",
+			URL:       "https://github.com/ahmadfaizk/go-mailgen",
+			Copyright: fmt.Sprintf("© %d Go-Mailgen. All rights reserved.", time.Now().Year()),
+		},
+	}
 }
 
 func (b *Builder) clone() *Builder {
@@ -68,8 +86,8 @@ func (b *Builder) clone() *Builder {
 		preheader:  b.preheader,
 		greeting:   b.greeting,
 		salutation: b.salutation,
-		actions:    append([]Action{}, b.actions...),
-		components: append([]Component{}, b.components...),
+		actions:    append([]*component.Action{}, b.actions...),
+		components: append([]component.Component{}, b.components...),
 		product:    b.product,
 	}
 }
@@ -84,11 +102,11 @@ func SetDefault(b *Builder) {
 	defaultBuilder.Store(b)
 }
 
-// NewMessage creates a new Message instance with default values for greeting, salutation, and product.
+// New creates a new Message instance with default values for greeting, salutation, and product.
 //
 // Example usage:
 //
-//	messsage := mailer.NewMessage().
+//	message := mailer.NewMessage().
 //		Subject("Reset Password").
 //		To("recipient@example.com").
 //		Line("Click the button below to reset your password").
@@ -117,7 +135,7 @@ func (b *Builder) From(address string, name ...string) *Builder {
 	return b
 }
 
-// To adds a recipient's email address to the email message.
+// To add a recipient's email address to the email message.
 func (b *Builder) To(to string, others ...string) *Builder {
 	values := b.filterRecipients(to, others...)
 	if len(values) == 0 {
@@ -143,7 +161,8 @@ func (b *Builder) filterRecipients(first string, others ...string) []string {
 	return filtered
 }
 
-func (b *Builder) CC(cc string, others ...string) *Builder {
+// Cc adds a carbon copy (CC) recipient's email address to the email message.
+func (b *Builder) Cc(cc string, others ...string) *Builder {
 	values := b.filterRecipients(cc, others...)
 	if len(values) == 0 {
 		return b
@@ -152,7 +171,8 @@ func (b *Builder) CC(cc string, others ...string) *Builder {
 	return b
 }
 
-func (b *Builder) BCC(bcc string, others ...string) *Builder {
+// Bcc adds a blind carbon copy (BCC) recipient's email address to the email message.
+func (b *Builder) Bcc(bcc string, others ...string) *Builder {
 	values := b.filterRecipients(bcc, others...)
 	if len(values) == 0 {
 		return b
@@ -179,7 +199,7 @@ func (b *Builder) Preheader(preheader string) *Builder {
 }
 
 // Greeting sets the greeting line of the email message.
-// Default is "Hello".
+// The default is "Hello".
 func (b *Builder) Greeting(greeting string) *Builder {
 	b.greeting = greeting
 	return b
@@ -195,7 +215,7 @@ func (b *Builder) Salutation(salutation string) *Builder {
 // Line adds a line of text to the email message.
 // If an action is set, it will be added to the outro lines; otherwise, it will be added to the intro lines.
 func (b *Builder) Line(text string) *Builder {
-	b.components = append(b.components, Line{Text: text})
+	b.components = append(b.components, component.Line{Text: text})
 	return b
 }
 
@@ -210,7 +230,7 @@ func (b *Builder) Linef(format string, args ...interface{}) *Builder {
 // It creates a button in the email that links to the specified URL.
 // The action can also include an optional instruction and color for the button.
 func (b *Builder) Action(text, url string, color ...string) *Builder {
-	action := Action{
+	action := &component.Action{
 		Text:  text,
 		URL:   url,
 		Color: "#3869D4",
@@ -225,9 +245,11 @@ func (b *Builder) Action(text, url string, color ...string) *Builder {
 
 // Product sets the product information for the email message.
 func (b *Builder) Product(product Product) *Builder {
+	defaultProduct := defaultBuilder.Load().product
+
 	b.product = product
 	if b.product.Name == "" {
-		b.product.Name = "GoMailgen"
+		b.product.Name = defaultProduct.Name
 	}
 	if b.product.URL == "" {
 		b.product.URL = "#"
@@ -253,23 +275,27 @@ func (b *Builder) Product(product Product) *Builder {
 //		},
 //	})
 func (b *Builder) Table(table Table) *Builder {
-	// Ensure headers have default values for width and alignment
-	for i, header := range table.Headers {
-		if header.Width == "" {
-			table.Headers[i].Width = "auto"
-		}
-		if header.Align == "" {
-			table.Headers[i].Align = "left"
-		}
-	}
-	if table.Rows == nil {
-		table.Rows = [][]string{}
-	}
-	if len(table.Rows) == 0 && len(table.Headers) == 0 {
+	if len(table.Data) == 0 {
 		return b // No table to add
 	}
+	// headers := make([]string, 0, len(table.Data[0]))
+	// for _, entry := range table.Data[0] {
+	// headers = append(headers, entry.Key)
 
-	b.components = append(b.components, table)
+	// width, ok := table.Columns.CustomWidth[entry.Key]
+	// if !ok || width == "" {
+	// 	width = "auto"
+	// }
+	// table.Columns.CustomWidth[entry.Key] = width
+
+	// align, ok := table.Columns.CustomAlign[entry.Key]
+	// if !ok || align == "" {
+	// 	align = "left"
+	// }
+	// table.Columns.CustomAlign[entry.Key] = align
+	// }
+
+	b.components = append(b.components, table.component())
 	return b
 }
 
@@ -303,7 +329,7 @@ type templateData struct {
 	Salutation     string
 	ComponentsHTML []htmltemplate.HTML
 	ComponentsText []string
-	Actions        []Action // Used for sub-copy in HTML
+	Actions        []*component.Action // Used for sub-copy in HTML
 	Product        Product
 }
 
@@ -312,13 +338,6 @@ func (b *Builder) htmlTemplate() *htmltemplate.Template {
 		return templates.PlainHtmlTmpl
 	}
 	return templates.DefaultHtmlTmpl
-}
-
-func (b *Builder) plainTextTemplate() *texttemplate.Template {
-	if b.theme == "plain" {
-		return templates.PlainPlainTextTmpl
-	}
-	return templates.DefaultPlainTextTmpl
 }
 
 func (b *Builder) generateHTML() (string, error) {
@@ -359,15 +378,18 @@ func (b *Builder) generateHTML() (string, error) {
 }
 
 func (b *Builder) generatePlaintext() (string, error) {
-	tmpl := b.plainTextTemplate()
+	tmpl := templates.PlainTextTmpl
 	var componentsText []string
 	for _, comp := range b.components {
-		text := comp.PlainText()
+		text, err := comp.PlainText(tmpl)
+		if err != nil {
+			return "", err
+		}
 		componentsText = append(componentsText, text)
 	}
 
 	data := templateData{
-		Greeting:       boxString(fmt.Sprintf("%s,", b.greeting)),
+		Greeting:       b.greeting,
 		Preheader:      b.preheader,
 		Salutation:     b.salutation,
 		Product:        b.product,
@@ -386,24 +408,28 @@ func (b *Builder) generatePlaintext() (string, error) {
 	return text, nil
 }
 
-func boxString(s string) string {
-	// Find the max line length (in case of multi-line input)
-	lines := strings.Split(s, "\n")
-	maxLen := 0
-	for _, line := range lines {
-		if len(line) > maxLen {
-			maxLen = len(line)
+func (t Table) component() component.Component {
+	if len(t.Data) == 0 {
+		return nil
+	}
+	tableComponent := component.Table{
+		Data: make([][]component.Entry, len(t.Data)),
+		Columns: component.Columns{
+			CustomWidth: make(map[string]string),
+			CustomAlign: make(map[string]string),
+		},
+	}
+	for i, row := range t.Data {
+		tableComponent.Data[i] = make([]component.Entry, len(row))
+		for j, entry := range row {
+			tableComponent.Data[i][j] = component.Entry{
+				Key:   entry.Key,
+				Value: entry.Value,
+			}
 		}
 	}
+	maps.Copy(tableComponent.Columns.CustomWidth, t.Columns.CustomWidth)
+	maps.Copy(tableComponent.Columns.CustomAlign, t.Columns.CustomAlign)
 
-	// The border should match the longest line length
-	border := strings.Repeat("*", maxLen)
-
-	// Combine
-	var b strings.Builder
-	b.WriteString(border + "\n")
-	b.WriteString(s + "\n")
-	b.WriteString(border)
-
-	return b.String()
+	return &tableComponent
 }

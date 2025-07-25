@@ -4,8 +4,8 @@ type Message interface {
 	Subject() string
 	From() Address
 	To() []string
-	CC() []string
-	BCC() []string
+	Cc() []string
+	Bcc() []string
 	HTML() string
 	PlainText() string
 }
@@ -46,11 +46,11 @@ func (m *message) To() []string {
 	return m.to
 }
 
-func (m *message) CC() []string {
+func (m *message) Cc() []string {
 	return m.cc
 }
 
-func (m *message) BCC() []string {
+func (m *message) Bcc() []string {
 	return m.bcc
 }
 

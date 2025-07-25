@@ -1,22 +1,28 @@
 {{define "table"}}
-{{ $headers := .Headers }}
+{{ $columns := .Columns }}
+{{ $firstRow := index .Data 0 }}
 <table class="data-table" width="100%" cellpadding="0" cellspacing="0">
   <tr>
     <td colspan="2">
       <table class="data-table-content" width="100%" cellpadding="0" cellspacing="0">
+        <!-- Header Row -->
         <tr>
-          {{range $headers}}
-          <th width="{{.Width}}" align="{{.Align}}">
-            <p class="f-fallback">{{.Text}}</p>
+          {{range $entry := $firstRow}}
+          {{ $width := index $columns.CustomWidth $entry.Key }}
+          {{ $align := index $columns.CustomAlign $entry.Key }}
+          <th width="{{or $width "auto"}}" align="{{or $align "left"}}">
+            <p class="f-fallback">{{ capitalize $entry.Key }}</p>
           </th>
           {{end}}
         </tr>
-        {{range .Rows }}
+
+        <!-- Data Rows -->
+        {{range .Data }}
         <tr>
-          {{range $index, $element := .}}
-          {{ $header := index $headers $index }}
-          <td class="align-{{$header.Align}}">
-            <span class="f-fallback">{{$element}}</span>
+          {{range $entry := .}}
+          {{ $align := index $columns.CustomAlign $entry.Key }}
+          <td class="align-{{or $align "left"}}">
+            <span class="f-fallback">{{ $entry.Value }}</span>
           </td>
           {{end}}
         </tr>

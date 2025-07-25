@@ -62,14 +62,21 @@ func receiptMessage() *mailgen.Builder {
 		Line("Thank you for your order!").
 		Line("Here are the details of your purchase:").
 		Table(mailgen.Table{
-			Headers: []mailgen.TableHeader{
-				{Text: "Item", Align: "left", Width: "50%"},
-				{Text: "Count", Align: "right", Width: "25%"},
-				{Text: "Price", Align: "right", Width: "25%"},
+			Data: [][]mailgen.Entry{
+				{{Key: "Item", Value: "Widget A"}, {Key: "Count", Value: "2"}, {Key: "Price", Value: "$20.00"}},
+				{{Key: "Item", Value: "Widget B"}, {Key: "Count", Value: "1"}, {Key: "Price", Value: "$15.00"}},
 			},
-			Rows: [][]string{
-				{"Widget A", "2", "$20.00"},
-				{"Widget B", "1", "$15.00"},
+			Columns: mailgen.Columns{
+				CustomWidth: map[string]string{
+					"Item":  "50%",
+					"Count": "25%",
+					"Price": "25%",
+				},
+				CustomAlign: map[string]string{
+					"Item":  "left",
+					"Count": "right",
+					"Price": "right",
+				},
 			},
 		}).
 		Line("Click the button below to view your order details.").
