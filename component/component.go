@@ -17,7 +17,7 @@ var _ Component = &Line{}
 
 type Action struct {
 	Text  string
-	URL   string
+	Link  string
 	Color string
 }
 

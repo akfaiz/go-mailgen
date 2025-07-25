@@ -1,16 +1,24 @@
-[GoMailer] ( https://github.com/ahmadfaizk/go-mailer )
+[Go-Mailgen] ( https://github.com/ahmadfaizk/go-mailgen )
 
-******
-Hello,
-******
+************
+Hi John Doe,
+************
 
-Thank you for signing up for our service!
+Welcome to Go-Mailgen! We're very excited to have you on board.
+
+To get started with Mailgen, please click here:
+
+Get Started ( https://example.com/get-started )
 
 We're glad to have you on board.
 
-If you have any questions, feel free to reach out to our support team.
+Need help, or have questions? Just reply to this email, we'd love to help.
 
 Best regards,
-GoMailer
+Go-Mailgen
 
-© 2025 GoMailer. All rights reserved.
+If you're having trouble clicking the "Get Started" button, copy and paste the URL below into your web browser:
+
+https://example.com/get-started
+
+© 2025 Go-Mailgen. All rights reserved.

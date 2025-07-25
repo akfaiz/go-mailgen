@@ -301,7 +301,9 @@
     }
 
     .email-masthead_logo {
-      width: 94px;
+      max-width: 400px;
+      border: 0;
+      max-height: 50px;
     }
 
     .email-masthead_name {
@@ -425,7 +427,7 @@ font-family: Arial, sans-serif;
 </style>
 <![endif]-->
 </head>
-<body>
+<body dir="{{.TextDirection}}">
   {{if .Preheader}}
   <span class="preheader">{{.Preheader}}</span>
   {{end}}
@@ -450,7 +452,7 @@ font-family: Arial, sans-serif;
                       {{end}}
                       <p>{{.Salutation}},<br>{{.Product.Name}}</p>
                       <!-- Sub copy -->
-                      {{range .Actions}}
+                      {{range .Fallbacks}}
                       {{template "subcopy" .}}
                       {{end}}
                     </div>

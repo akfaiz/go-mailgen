@@ -1,4 +1,5 @@
 {{define "subcopy"}}
-If you're having trouble clicking the "{{.Text}}" button, copy and paste the URL below into your web browser:
-{{.URL}}
+{{.Text}}
+
+{{.Link}}
 {{end}}

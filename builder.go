@@ -16,26 +16,44 @@ import (
 )
 
 // Product represents the product information used in the email.
-// It includes the product name, logo URL, product URL, and copyright information.
 type Product struct {
 	Name      string
-	URL       string
+	Link      string
+	Logo      string // Optional logo URL
 	Copyright string
 }
 
+// Table represents a table component in the email message.
 type Table struct {
 	Data    [][]Entry
 	Columns Columns
 }
 
+// Entry represents a single entry in the table.
 type Entry struct {
 	Key   string
 	Value string
 }
 
+// Columns represents configuration for the table columns.
 type Columns struct {
 	CustomWidth map[string]string
 	CustomAlign map[string]string
+}
+
+// Action represents an action button in the email message.
+type Action struct {
+	Text       string
+	Link       string
+	Color      string // Default color is #3869D4
+	NoFallback bool   // If true, disables fallback for the action button
+}
+
+// Fallback represents a fallback action in the email message.
+type Fallback struct {
+	Text       string
+	Link       string
+	actionText string
 }
 
 // Builder represents an email message with various fields such as subject, recipients, and content.
@@ -47,13 +65,16 @@ type Builder struct {
 	cc      []string
 	bcc     []string
 
-	theme      string
-	preheader  string
-	greeting   string
-	salutation string
-	actions    []*component.Action
-	components []component.Component
-	product    Product
+	textDirection  string
+	theme          string
+	preheader      string
+	greeting       string
+	name           string
+	salutation     string
+	components     []component.Component
+	fallbacks      []*Fallback
+	fallbackFormat string
+	product        Product
 }
 
 var defaultBuilder atomic.Pointer[Builder]
@@ -64,31 +85,36 @@ func init() {
 
 func newDefaultBuilder() *Builder {
 	return &Builder{
-		theme:      "default",
-		greeting:   "Hello",
-		salutation: "Best regards",
+		textDirection: "ltr",
+		theme:         "default",
+		greeting:      "Hi",
+		salutation:    "Best regards",
 		product: Product{
 			Name:      "Go-Mailgen",
-			URL:       "https://github.com/ahmadfaizk/go-mailgen",
+			Link:      "https://github.com/ahmadfaizk/go-mailgen",
 			Copyright: fmt.Sprintf("© %d Go-Mailgen. All rights reserved.", time.Now().Year()),
 		},
+		fallbackFormat: "If you're having trouble clicking the \"[ACTION]\" button, copy and paste the URL below into your web browser:",
 	}
 }
 
 func (b *Builder) clone() *Builder {
 	return &Builder{
-		subject:    b.subject,
-		from:       b.from,
-		to:         append([]string{}, b.to...),
-		cc:         append([]string{}, b.cc...),
-		bcc:        append([]string{}, b.bcc...),
-		theme:      b.theme,
-		preheader:  b.preheader,
-		greeting:   b.greeting,
-		salutation: b.salutation,
-		actions:    append([]*component.Action{}, b.actions...),
-		components: append([]component.Component{}, b.components...),
-		product:    b.product,
+		textDirection:  b.textDirection,
+		subject:        b.subject,
+		from:           b.from,
+		to:             append([]string{}, b.to...),
+		cc:             append([]string{}, b.cc...),
+		bcc:            append([]string{}, b.bcc...),
+		theme:          b.theme,
+		fallbackFormat: b.fallbackFormat,
+		preheader:      b.preheader,
+		greeting:       b.greeting,
+		name:           b.name,
+		salutation:     b.salutation,
+		fallbacks:      append([]*Fallback{}, b.fallbacks...),
+		components:     append([]component.Component{}, b.components...),
+		product:        b.product,
 	}
 }
 
@@ -188,6 +214,30 @@ func (b *Builder) Theme(theme string) *Builder {
 	return b
 }
 
+// TextDirection sets the text direction for the email message.
+// It can be "ltr" (left-to-right) or "rtl" (right-to-left).
+func (b *Builder) TextDirection(direction string) *Builder {
+	if direction != "ltr" && direction != "rtl" {
+		return b // Invalid direction, do nothing
+	}
+	b.textDirection = direction
+	return b
+}
+
+// FallbackFormat sets the fallback format for action buttons in the email message.
+// This format is used when the email client does not support HTML buttons.
+//
+// Example usage:
+//
+//	message.FallbackFormat("If you're having trouble clicking the \"[ACTION]\" button, copy and paste the URL below into your web browser:")
+func (b *Builder) FallbackFormat(format string) *Builder {
+	if format == "" {
+		return b // No format provided, do nothing
+	}
+	b.fallbackFormat = format
+	return b
+}
+
 // Preheader sets the preheader text for the email message.
 // The preheader is a short summary text that follows the subject line when an email is viewed in the inbox.
 // It is often used to provide additional context or a preview of the email content.
@@ -199,9 +249,18 @@ func (b *Builder) Preheader(preheader string) *Builder {
 }
 
 // Greeting sets the greeting line of the email message.
-// The default is "Hello".
+// The default is "Hi".
 func (b *Builder) Greeting(greeting string) *Builder {
 	b.greeting = greeting
+	return b
+}
+
+// Name sets the name of the greeting line in the email message.
+// This is typically used to personalize the greeting with the recipient's name.
+//
+// If not set, the greeting will be a generic "Hi".
+func (b *Builder) Name(name string) *Builder {
+	b.name = name
 	return b
 }
 
@@ -229,17 +288,27 @@ func (b *Builder) Linef(format string, args ...interface{}) *Builder {
 // Action sets the action text and URL for the email message.
 // It creates a button in the email that links to the specified URL.
 // The action can also include an optional instruction and color for the button.
-func (b *Builder) Action(text, url string, color ...string) *Builder {
+func (b *Builder) Action(text, link string, cfg ...Action) *Builder {
 	action := &component.Action{
 		Text:  text,
-		URL:   url,
+		Link:  link,
 		Color: "#3869D4",
 	}
-	if len(color) > 0 && color[0] != "" {
-		action.Color = color[0]
+	noFallback := false
+	if len(cfg) > 0 {
+		if cfg[0].Color != "" {
+			action.Color = cfg[0].Color
+		}
+		noFallback = cfg[0].NoFallback
 	}
-	b.actions = append(b.actions, action)
 	b.components = append(b.components, action)
+	if !noFallback {
+		fallback := &Fallback{
+			Link:       action.Link,
+			actionText: action.Text,
+		}
+		b.fallbacks = append(b.fallbacks, fallback)
+	}
 	return b
 }
 
@@ -251,12 +320,10 @@ func (b *Builder) Product(product Product) *Builder {
 	if b.product.Name == "" {
 		b.product.Name = defaultProduct.Name
 	}
-	if b.product.URL == "" {
-		b.product.URL = "#"
-	}
 	if b.product.Copyright == "" {
 		b.product.Copyright = fmt.Sprintf("© %d %s. All rights reserved.", time.Now().Year(), b.product.Name)
 	}
+	b.product.Link = product.Link
 	return b
 }
 
@@ -265,35 +332,31 @@ func (b *Builder) Product(product Product) *Builder {
 // Example usage:
 //
 //	message.Table(mailer.Table{
-//		Headers: []mailer.TableHeader{
-//			{Text: "Item", Align: "left", Width: "70%"},
-//			{Text: "Price", Align: "right", Width: "30%"},
+//		Data: [][]mailer.Entry{
+//			{
+//				{Key: "Name", Value: "John Doe"},
+//				{Key: "Email", Value: "john.doe@example.com"},
+//			},
+//			{
+//				{Key: "Name", Value: "Jane Smith"},
+//				{Key: "Email", Value: "jane.smith@example.com"},
+//			},
 //		},
-//		Rows: [][]string{
-//			{"Widget A", "$10.00"},
-//			{"Widget B", "$15.00"},
+//		Columns: mailer.Columns{
+//			CustomWidth: map[string]string{
+//				"Name":  "50%",
+//				"Email": "50%",
+//			},
+//			CustomAlign: map[string]string{
+//				"Name":  "left",
+//				"Email": "right",
+//			},
 //		},
 //	})
 func (b *Builder) Table(table Table) *Builder {
 	if len(table.Data) == 0 {
 		return b // No table to add
 	}
-	// headers := make([]string, 0, len(table.Data[0]))
-	// for _, entry := range table.Data[0] {
-	// headers = append(headers, entry.Key)
-
-	// width, ok := table.Columns.CustomWidth[entry.Key]
-	// if !ok || width == "" {
-	// 	width = "auto"
-	// }
-	// table.Columns.CustomWidth[entry.Key] = width
-
-	// align, ok := table.Columns.CustomAlign[entry.Key]
-	// if !ok || align == "" {
-	// 	align = "left"
-	// }
-	// table.Columns.CustomAlign[entry.Key] = align
-	// }
 
 	b.components = append(b.components, table.component())
 	return b
@@ -303,6 +366,7 @@ func (b *Builder) Table(table Table) *Builder {
 // It processes all the components, actions, and other fields set in the Builder.
 // Returns an error if there is an issue generating the HTML or plaintext content.
 func (b *Builder) Build() (Message, error) {
+	b.beforeBuild()
 	html, err := b.generateHTML()
 	if err != nil {
 		return nil, err
@@ -322,14 +386,20 @@ func (b *Builder) Build() (Message, error) {
 	}, nil
 }
 
+func (b *Builder) beforeBuild() {
+	for _, fallback := range b.fallbacks {
+		fallback.Text = strings.ReplaceAll(b.fallbackFormat, "[ACTION]", fallback.actionText)
+	}
+}
+
 type templateData struct {
-	Theme          string
+	TextDirection  string
 	Preheader      string
 	Greeting       string
 	Salutation     string
 	ComponentsHTML []htmltemplate.HTML
 	ComponentsText []string
-	Actions        []*component.Action // Used for sub-copy in HTML
+	Fallbacks      []*Fallback
 	Product        Product
 }
 
@@ -353,13 +423,13 @@ func (b *Builder) generateHTML() (string, error) {
 	}
 
 	data := templateData{
-		Theme:          b.theme,
+		TextDirection:  b.textDirection,
 		Preheader:      b.preheader,
-		Greeting:       b.greeting,
+		Greeting:       b.greetingLine(),
 		Salutation:     b.salutation,
 		Product:        b.product,
 		ComponentsHTML: componentsHTML,
-		Actions:        b.actions,
+		Fallbacks:      b.fallbacks,
 	}
 	var buf bytes.Buffer
 
@@ -374,7 +444,29 @@ func (b *Builder) generateHTML() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return html, nil
+	return cleanEmailHTML(html), nil
+}
+
+func cleanEmailHTML(input string) string {
+	// Remove spaces and newlines between HTML tags
+	reBetweenTags := regexp.MustCompile(`>\s+<`)
+	clean := reBetweenTags.ReplaceAllString(input, "><")
+
+	// Remove leading/trailing spaces on each line
+	lines := strings.Split(clean, "\n")
+	for i, line := range lines {
+		lines[i] = strings.TrimSpace(line)
+	}
+	clean = strings.Join(lines, "\n")
+
+	// Remove multiple empty lines
+	reEmptyLines := regexp.MustCompile(`\n{2,}`)
+	clean = reEmptyLines.ReplaceAllString(clean, "\n")
+
+	// Final trim
+	clean = strings.TrimSpace(clean)
+
+	return clean
 }
 
 func (b *Builder) generatePlaintext() (string, error) {
@@ -389,11 +481,12 @@ func (b *Builder) generatePlaintext() (string, error) {
 	}
 
 	data := templateData{
-		Greeting:       b.greeting,
+		Greeting:       b.greetingLine(),
 		Preheader:      b.preheader,
 		Salutation:     b.salutation,
 		Product:        b.product,
 		ComponentsText: componentsText,
+		Fallbacks:      b.fallbacks,
 	}
 	var buf bytes.Buffer
 	if err := tmpl.ExecuteTemplate(&buf, "index.txt", data); err != nil {
@@ -401,17 +494,30 @@ func (b *Builder) generatePlaintext() (string, error) {
 	}
 	text := buf.String()
 
-	text = strings.TrimSpace(text)
-	re := regexp.MustCompile(`\n{3,}`)
-	text = re.ReplaceAllString(text, "\n\n")
+	return cleanEmailText(text), nil
+}
 
-	return text, nil
+func cleanEmailText(input string) string {
+	clean := strings.TrimSpace(input)
+	re := regexp.MustCompile(`\n{3,}`)
+	clean = re.ReplaceAllString(clean, "\n\n")
+	return clean
+}
+
+func (b *Builder) greetingLine() string {
+	if b.name != "" {
+		if b.textDirection == "rtl" {
+			return fmt.Sprintf("%s %s", b.name, b.greeting)
+		}
+		return fmt.Sprintf("%s %s", b.greeting, b.name)
+	}
+	if b.greeting == "" {
+		return defaultBuilder.Load().greeting
+	}
+	return b.greeting
 }
 
 func (t Table) component() component.Component {
-	if len(t.Data) == 0 {
-		return nil
-	}
 	tableComponent := component.Table{
 		Data: make([][]component.Entry, len(t.Data)),
 		Columns: component.Columns{

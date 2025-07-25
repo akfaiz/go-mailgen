@@ -13,7 +13,7 @@
 {{.Salutation}},
 {{.Product.Name}}
 
-{{range .Actions}}
+{{range .Fallbacks}}
 {{template "subcopy" .}}
 {{end}}
 

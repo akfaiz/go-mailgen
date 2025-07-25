@@ -3,7 +3,7 @@ module github.com/ahmadfaizk/go-mailgen/examples
 go 1.23.0
 
 require (
-	github.com/ahmadfaizk/go-mailgen v0.0.0-20231022120000-abcdef123456
+	github.com/ahmadfaizk/go-mailgen v0.1.1
 	github.com/wneessen/go-mail v0.6.2
 )
 
