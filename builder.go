@@ -19,6 +19,7 @@ import (
 type Product struct {
 	Name      string
 	Link      string
+	Logo      string // Optional logo URL
 	Copyright string
 }
 
@@ -424,7 +425,29 @@ func (b *Builder) generateHTML() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return html, nil
+	return cleanEmailHTML(html), nil
+}
+
+func cleanEmailHTML(input string) string {
+	// Remove spaces and newlines between HTML tags
+	reBetweenTags := regexp.MustCompile(`>\s+<`)
+	clean := reBetweenTags.ReplaceAllString(input, "><")
+
+	// Remove leading/trailing spaces on each line
+	lines := strings.Split(clean, "\n")
+	for i, line := range lines {
+		lines[i] = strings.TrimSpace(line)
+	}
+	clean = strings.Join(lines, "\n")
+
+	// Remove multiple empty lines
+	reEmptyLines := regexp.MustCompile(`\n{2,}`)
+	clean = reEmptyLines.ReplaceAllString(clean, "\n")
+
+	// Final trim
+	clean = strings.TrimSpace(clean)
+
+	return clean
 }
 
 func (b *Builder) generatePlaintext() (string, error) {
@@ -452,11 +475,14 @@ func (b *Builder) generatePlaintext() (string, error) {
 	}
 	text := buf.String()
 
-	text = strings.TrimSpace(text)
-	re := regexp.MustCompile(`\n{3,}`)
-	text = re.ReplaceAllString(text, "\n\n")
+	return cleanEmailText(text), nil
+}
 
-	return text, nil
+func cleanEmailText(input string) string {
+	clean := strings.TrimSpace(input)
+	re := regexp.MustCompile(`\n{3,}`)
+	clean = re.ReplaceAllString(clean, "\n\n")
+	return clean
 }
 
 func (b *Builder) greetingLine() string {

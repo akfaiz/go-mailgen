@@ -1,29 +1,27 @@
-[GoMailer] ( https://github.com/ahmadfaizk/go-mailer )
+[Go-Mailgen] ( https://github.com/ahmadfaizk/go-mailgen )
 
-***
-Hi,
-***
+************
+Hi John Doe,
+************
 
-Thank you for your order!
+Your order has been processed successfully.
 
-Here are the details of your purchase:
+Item    | Description                                              |  Price
+--------+----------------------------------------------------------+-------
+Golang  | An open-source programming language supported by Google. | $10.99
+Mailgen | Programmatically create beautiful e-mails using Golang   |  $1.99
 
-Item     | Count |  Price
----------+-------+-------
-Widget A |     2 | $20.00
-Widget B |     1 | $15.00
+You can check the status of your order and more in your dashboard:
 
-Click the button below to view your order details.
+Go to Dashboard ( https://example.com/dashboard )
 
-View Order ( https://example.com/order )
-
-If you have any questions, feel free to contact us.
+We thank you for your purchase.
 
 Best regards,
-GoMailer
+Go-Mailgen
 
-If you're having trouble clicking the "View Order" button, copy and paste the URL below into your web browser: https://example.com/order
+If you're having trouble clicking the "Go to Dashboard" button, copy and paste the URL below into your web browser: https://example.com/dashboard
 
-https://example.com/order
+https://example.com/dashboard
 
-© 2025 GoMailer. All rights reserved.
+© 2025 Go-Mailgen. All rights reserved.

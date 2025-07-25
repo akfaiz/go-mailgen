@@ -15,7 +15,8 @@
 - **Inline CSS**: Ensures compatibility across major email clients.
 - **Template-Based**: Use pre-built or custom templates for rapid development.
 - **Easy Integration**: Works effortlessly with popular Go mail libraries like go-mail.
-- **Dynamic Components Ordering**: Add components like buttons, tables, and lines in any order you want.
+- **Chainable Methods**: Add content, actions, and tables in a straightforward manner.
+- **Global Configuration**: Set default sender, product information, and theme for all emails.
 
 ## Installation
 
@@ -87,6 +88,9 @@ func main() {
 
 You can find more examples in the [examples](examples) directory.
 
+## Documentation
+For detailed documentation, please visit the [Go-Mailgen documentation](https://pkg.go.dev/github.com/ahmadfaizk/go-mailgen).
+
 ## Supported Themes
 
 The following open-source themes are bundled with this package:
@@ -98,6 +102,95 @@ The following open-source themes are bundled with this package:
 - `plain` by [Postmark Transactional Email Templates](https://github.com/ActiveCampaign/postmark-templates)
 
 <img src="examples/plain/welcome.png" height="200" /> <img src="examples/plain/reset.png" height="200" /> <img src="examples/plain/receipt.png" height="200" />
+
+## Elements
+
+Go-Mailgen provides several methods to add content to your emails. Here are some of the most commonly used methods:
+
+### Action
+
+To add an action button to your email, use the `Action` method:
+
+```go
+mailgen.New().
+	Line("To confirm your email address, please click the button below:").
+	Action("Confirm Email", "https://example.com/confirm")
+```
+
+To add multiple actions to your email, you can chain the `Action` method:
+
+```go
+mailgen.New().
+	Line("To confirm your email address, please click the buttons below:").
+	Action("Confirm Email", "https://example.com/confirm").
+	Line("Or you can visit our website:").
+	Action("Visit Website", "https://example.com")
+```
+
+### Table
+
+To add a table to your email, use the `Table` method:
+
+```go
+mailgen.New().
+	Line("Your order has been processed successfully.").
+	Table(mailgen.Table{
+		Data: [][]mailgen.Entry{
+			{
+				{Key: "Item", Value: "Golang"},
+				{Key: "Description", Value: "An open-source programming language supported by Google."},
+				{Key: "Price", Value: "$10.99"},
+			},
+			{
+				{Key: "Item", Value: "Mailgen"},
+				{Key: "Description", Value: "Programmatically create beautiful e-mails using Golang"},
+				{Key: "Price", Value: "$1.99"},
+			},
+		},
+		Columns: mailgen.Columns{
+			CustomWidth: map[string]string{
+				"Item":  "20%",
+				"Price": "15%",
+			},
+			CustomAlign: map[string]string{
+				"Price": "right",
+			},
+		},
+	})
+```
+
+You can chain the `Table` with other methods to add more content to your email:
+
+```go
+mailgen.New().
+	Line("Your order has been processed successfully.").
+	Table(mailgen.Table{
+		Data: [][]mailgen.Entry{
+			{
+				{Key: "Item", Value: "Golang"},
+				{Key: "Description", Value: "An open-source programming language supported by Google."},
+				{Key: "Price", Value: "$10.99"},
+			},
+			{
+				{Key: "Item", Value: "Mailgen"},
+				{Key: "Description", Value: "Programmatically create beautiful e-mails using Golang"},
+				{Key: "Price", Value: "$1.99"},
+			},
+		},
+		Columns: mailgen.Columns{
+			CustomWidth: map[string]string{
+				"Item":  "20%",
+				"Price": "15%",
+			},
+			CustomAlign: map[string]string{
+				"Price": "right",
+			},
+		},
+	}).
+	Line("If you have any questions, feel free to contact us.").
+	Action("Contact Support", "https://example.com/contact").
+	Line("Thank you for your order!")
+```
 
 ## License
 

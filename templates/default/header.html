@@ -1,7 +1,13 @@
 {{define "header"}}
 <tr>
   <td class="email-masthead">
-    <a href="{{.Product.Link}}" class="f-fallback email-masthead_name">{{.Product.Name}}</a>
+    <a href="{{.Product.Link}}" class="f-fallback email-masthead_name">
+      {{if .Product.Logo}}
+      <img src="{{.Product.Logo}}" class="email-masthead_logo" alt="{{.Product.Name}} Logo" />
+      {{else}}
+      {{.Product.Name}}
+      {{end}}
+    </a>
   </td>
 </tr>
 {{end}}
