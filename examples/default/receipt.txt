@@ -1,0 +1,27 @@
+[GoMailer] ( https://github.com/ahmadfaizk/go-mailer )
+
+************
+Hello,
+************
+
+Thank you for your order!
+
+Here are the details of your order:
+
+Item     | Count |  Price
+---------+-------+-------
+Widget A |     2 | $20.00
+Widget B |     1 | $15.00
+
+View Order ( https://example.com/order )
+
+If you have any questions, feel free to contact us.
+
+Best regards,
+GoMailer
+
+If you're having trouble clicking the "View Order" button, copy and paste the URL below into your web browser:
+
+https://example.com/order
+
+© 2025 GoMailer. All rights reserved.
