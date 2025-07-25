@@ -4,15 +4,15 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/ahmadfaizk/go-mailer"
+	"github.com/ahmadfaizk/go-mailgen"
 )
 
 func main() {
-	defaultProduct := mailer.Product{
+	defaultProduct := mailgen.Product{
 		Name: "GoMailer",
 		URL:  "https://github.com/ahmadfaizk/go-mailer",
 	}
-	messages := map[string]*mailer.Message{
+	messages := map[string]*mailgen.Message{
 		"reset":   resetMessage(),
 		"welcome": welcomeMessage(),
 		"receipt": receiptMessage(),
@@ -45,33 +45,27 @@ func main() {
 	}
 }
 
-func resetMessage() *mailer.Message {
-	return mailer.NewMessage().
-		Subject("Reset your password").
-		To("recipient@example.com").
+func resetMessage() *mailgen.Message {
+	return mailgen.NewMessage().
 		Preheader("Use this link to reset your password. The link is only valid for 24 hours.").
 		Line("Click the button below to reset your password").
 		Action("Reset your password", "https://example.com/reset-password").
 		Line("If you did not request this, please ignore this email")
 }
 
-func welcomeMessage() *mailer.Message {
-	return mailer.NewMessage().
-		Subject("Welcome to our service!").
-		To("recipient@example.com").
+func welcomeMessage() *mailgen.Message {
+	return mailgen.NewMessage().
 		Line("Thank you for signing up for our service!").
 		Line("We're glad to have you on board.").
 		Line("If you have any questions, feel free to reach out to our support team.")
 }
 
-func receiptMessage() *mailer.Message {
-	return mailer.NewMessage().
-		Subject("Your order receipt").
-		To("recipient@example.com").
+func receiptMessage() *mailgen.Message {
+	return mailgen.NewMessage().
 		Line("Thank you for your order!").
 		Line("Here are the details of your purchase:").
-		Table(mailer.Table{
-			Headers: []mailer.TableHeader{
+		Table(mailgen.Table{
+			Headers: []mailgen.TableHeader{
 				{Text: "Item", Align: "left", Width: "50%"},
 				{Text: "Count", Align: "right", Width: "25%"},
 				{Text: "Price", Align: "right", Width: "25%"},

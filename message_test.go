@@ -1,61 +1,16 @@
-package mailer_test
+package mailgen_test
 
 import (
 	"testing"
 	"time"
 
-	"github.com/ahmadfaizk/go-mailer"
+	"github.com/ahmadfaizk/go-mailgen"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
-func TestNewMessage(t *testing.T) {
-	msg := mailer.NewMessage()
-
-	assert.Empty(t, msg.GetSubject())
-	assert.Empty(t, msg.GetTo())
-	assert.Empty(t, msg.GetCc())
-	assert.Empty(t, msg.GetBcc())
-}
-
-func TestMessage_Subject(t *testing.T) {
-	msg := mailer.NewMessage()
-	subject := "Test Subject"
-
-	msg.Subject(subject)
-
-	assert.Equal(t, subject, msg.GetSubject())
-}
-
-func TestMessage_To(t *testing.T) {
-	msg := mailer.NewMessage()
-
-	msg.To("test1@example.com", "test2@example.com")
-
-	expected := []string{"test1@example.com", "test2@example.com"}
-	assert.Equal(t, expected, msg.GetTo())
-}
-
-func TestMessage_Cc(t *testing.T) {
-	msg := mailer.NewMessage()
-
-	msg.Cc("cc1@example.com", "cc2@example.com")
-
-	expected := []string{"cc1@example.com", "cc2@example.com"}
-	assert.Equal(t, expected, msg.GetCc())
-}
-
-func TestMessage_Bcc(t *testing.T) {
-	msg := mailer.NewMessage()
-
-	msg.Bcc("bcc1@example.com", "bcc2@example.com")
-
-	expected := []string{"bcc1@example.com", "bcc2@example.com"}
-	assert.Equal(t, expected, msg.GetBcc())
-}
-
 func TestMessage_Line(t *testing.T) {
-	msg := mailer.NewMessage()
+	msg := mailgen.NewMessage()
 
 	msg.Line("First line")
 	msg.Line("Second line")
@@ -68,7 +23,7 @@ func TestMessage_Line(t *testing.T) {
 }
 
 func TestMessage_Linef(t *testing.T) {
-	msg := mailer.NewMessage()
+	msg := mailgen.NewMessage()
 
 	msg.Linef("Hello %s, you have %d messages", "John", 5)
 
@@ -79,7 +34,7 @@ func TestMessage_Linef(t *testing.T) {
 }
 
 func TestMessage_Action(t *testing.T) {
-	msg := mailer.NewMessage()
+	msg := mailgen.NewMessage()
 
 	msg.Action("Click Here", "https://example.com")
 
@@ -91,9 +46,9 @@ func TestMessage_Action(t *testing.T) {
 }
 
 func TestMessage_Product(t *testing.T) {
-	msg := mailer.NewMessage()
+	msg := mailgen.NewMessage()
 
-	product := mailer.Product{
+	product := mailgen.Product{
 		Name:      "Test Product",
 		URL:       "https://example.com",
 		Copyright: "© 2023 Test Product",
@@ -109,14 +64,14 @@ func TestMessage_Product(t *testing.T) {
 }
 
 func TestMessage_ProductDefaults(t *testing.T) {
-	msg := mailer.NewMessage()
+	msg := mailgen.NewMessage()
 
-	msg.Product(mailer.Product{})
+	msg.Product(mailgen.Product{})
 
 	html, err := msg.GenerateHTML()
 	require.NoError(t, err)
 
-	assert.Contains(t, html, "GoMailer")
+	assert.Contains(t, html, "GoMailgen")
 
 	currentYear := time.Now().Year()
 	expectedCopyright := "© " + string(rune(currentYear+'0'))
@@ -124,18 +79,11 @@ func TestMessage_ProductDefaults(t *testing.T) {
 }
 
 func TestMessage_ChainedMethods(t *testing.T) {
-	msg := mailer.NewMessage().
-		Subject("Chained Test").
-		To("test@example.com").
-		Cc("cc@example.com").
-		Bcc("bcc@example.com").
+	msg := mailgen.NewMessage().
 		Greeting("Hi there").
 		Line("This is a test").
 		Action("Test Action", "https://test.com").
 		Line("After action line")
-
-	assert.Equal(t, "Chained Test", msg.GetSubject())
-	assert.Equal(t, []string{"test@example.com"}, msg.GetTo())
 
 	html, err := msg.GenerateHTML()
 	require.NoError(t, err)
@@ -144,8 +92,7 @@ func TestMessage_ChainedMethods(t *testing.T) {
 }
 
 func TestMessage_GenerateHTML(t *testing.T) {
-	msg := mailer.NewMessage().
-		Subject("Reset Password Notification").
+	msg := mailgen.NewMessage().
 		Line("You are receiving this email because we received a password reset request for your account.").
 		Action("Reset Password", "https://example.com/reset-password").
 		Linef("This password reset link will expire in %d minutes.", 60).
@@ -165,11 +112,10 @@ func TestMessage_GenerateHTML(t *testing.T) {
 }
 
 func TestMessage_GenerateHTMLWithTable(t *testing.T) {
-	msg := mailer.NewMessage().
-		Subject("Order Confirmation").
+	msg := mailgen.NewMessage().
 		Line("Thank you for your order!").
-		Table(mailer.Table{
-			Headers: []mailer.TableHeader{
+		Table(mailgen.Table{
+			Headers: []mailgen.TableHeader{
 				{Text: "Item", Align: "left", Width: "70%"},
 				{Text: "Price", Align: "right", Width: "30%"},
 			},
@@ -190,8 +136,7 @@ func TestMessage_GenerateHTMLWithTable(t *testing.T) {
 }
 
 func TestMessage_GeneratePlaintext(t *testing.T) {
-	msg := mailer.NewMessage().
-		Subject("Reset Password Notification").
+	msg := mailgen.NewMessage().
 		Line("You are receiving this email because we received a password reset request for your account.").
 		Action("Reset Password", "https://example.com/reset-password").
 		Linef("This password reset link will expire in %d minutes.", 60).
@@ -205,11 +150,10 @@ func TestMessage_GeneratePlaintext(t *testing.T) {
 }
 
 func TestMessage_GeneratePlaintextWithTable(t *testing.T) {
-	msg := mailer.NewMessage().
-		Subject("Order Confirmation").
+	msg := mailgen.NewMessage().
 		Line("Thank you for your order!").
-		Table(mailer.Table{
-			Headers: []mailer.TableHeader{
+		Table(mailgen.Table{
+			Headers: []mailgen.TableHeader{
 				{Text: "Item", Align: "left", Width: "70%"},
 				{Text: "Price", Align: "right", Width: "30%"},
 			},

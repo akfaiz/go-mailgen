@@ -1,4 +1,4 @@
-package mailer
+package mailgen
 
 import (
 	"bytes"
