@@ -1,7 +1,7 @@
 {{define "header"}}
 {{if .Product.Name}}
 {{if .Product.Link}}
-[{{.Product.Name}}] ( {{.Product.Link}} )
+[{{.Product.Name}}] ({{.Product.Link}})
 {{else}}
 [{{.Product.Name}}]
 {{end}}

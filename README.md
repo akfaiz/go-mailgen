@@ -7,16 +7,17 @@
 [![Go Version](https://img.shields.io/github/go-mod/go-version/ahmadfaizk/go-mailgen)](https://golang.org/doc/devel/release.html)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
+<div align="center"><img src="./logo.png" width="150" alt="go-mailgen logo"/></div>
+
 **Go-Mailgen** is a Go library for generating professional HTML emails using a fluent, intuitive API. Simplify email creation with customizable templates and seamless integration into your Go applications. This project is inspired by the [mailgen](https://github.com/eladnava/mailgen) Node.js package, bringing its elegant email generation approach to the Go ecosystem.
 
 ## Features
 
 - **Fluent API**: Build emails with a clean, chainable interface.
 - **Inline CSS**: Ensures compatibility across major email clients.
-- **Template-Based**: Use pre-built or custom templates for rapid development.
 - **Easy Integration**: Works effortlessly with popular Go mail libraries like go-mail.
 - **Chainable Methods**: Add content, actions, and tables in a straightforward manner.
-- **Global Configuration**: Set default sender, product information, and theme for all emails.
+- **Global Configuration**: Set default base email settings and themes.
 
 ## Installation
 
@@ -54,7 +55,7 @@ func main() {
 		From("no-reply@example.com", "Go-Mailgen").
 		Product(mailgen.Product{
 			Name: "Go-Mailgen",
-			URL:  "https://github.com/ahmadfaizk/go-mailgen",
+			Link: "https://github.com/ahmadfaizk/go-mailgen",
 		}).
 		Theme("default"),
 	)
@@ -89,6 +90,7 @@ func main() {
 You can find more examples in the [examples](examples) directory.
 
 ## Documentation
+
 For detailed documentation, please visit the [Go-Mailgen documentation](https://pkg.go.dev/github.com/ahmadfaizk/go-mailgen).
 
 ## Supported Themes
@@ -97,11 +99,31 @@ The following open-source themes are bundled with this package:
 
 - `default` by [Postmark Transactional Email Templates](https://github.com/ActiveCampaign/postmark-templates)
 
-<img src="examples/default/welcome.png" height="200" /> <img src="examples/default/reset.png" height="200" /> <img src="examples/default/receipt.png" height="200" />
+| Welcome | Reset Password | Receipt |
+|---------|----------------|---------|
+| <img src="examples/default/welcome.png" height="200" /> | <img src="examples/default/reset.png" height="200" /> | <img src="examples/default/receipt.png" height="200" /> |
 
 - `plain` by [Postmark Transactional Email Templates](https://github.com/ActiveCampaign/postmark-templates)
 
-<img src="examples/plain/welcome.png" height="200" /> <img src="examples/plain/reset.png" height="200" /> <img src="examples/plain/receipt.png" height="200" />
+| Welcome | Reset Password | Receipt |
+|---------|----------------|---------|
+| <img src="examples/plain/welcome.png" height="200" /> | <img src="examples/plain/reset.png" height="200" /> | <img src="examples/plain/receipt.png" height="200" /> |
+
+## RTL Support
+
+To change default text direction to RTL, you can use the `TextDirection` method:
+
+```go
+// Set the text direction when creating a new email
+email := mailgen.New().
+	TextDirection("rtl").
+	Line("هذا هو عنوان البريد الإلكتروني الخاص بك")
+// or set it globally
+mailgen.SetDefault(mailgen.New().TextDirection("rtl"))
+// Then build the email as usual
+email := mailgen.New().
+	Line("هذا هو عنوان البريد الإلكتروني الخاص بك")
+```
 
 ## Elements
 
@@ -112,15 +134,12 @@ Go-Mailgen provides several methods to add content to your emails. Here are some
 To add an action button to your email, use the `Action` method:
 
 ```go
-mailgen.New().
+email := mailgen.New().
 	Line("To confirm your email address, please click the button below:").
 	Action("Confirm Email", "https://example.com/confirm")
-```
 
-To add multiple actions to your email, you can chain the `Action` method:
-
-```go
-mailgen.New().
+// To add multiple actions, you can chain the `Action` method:
+email := mailgen.New().
 	Line("To confirm your email address, please click the buttons below:").
 	Action("Confirm Email", "https://example.com/confirm").
 	Line("Or you can visit our website:").
@@ -132,7 +151,7 @@ mailgen.New().
 To add a table to your email, use the `Table` method:
 
 ```go
-mailgen.New().
+email := mailgen.New().
 	Line("Your order has been processed successfully.").
 	Table(mailgen.Table{
 		Data: [][]mailgen.Entry{
@@ -162,7 +181,7 @@ mailgen.New().
 You can chain the `Table` with other methods to add more content to your email:
 
 ```go
-mailgen.New().
+email := mailgen.New().
 	Line("Your order has been processed successfully.").
 	Table(mailgen.Table{
 		Data: [][]mailgen.Entry{

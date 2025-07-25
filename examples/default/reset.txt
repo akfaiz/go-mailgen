@@ -1,4 +1,4 @@
-[Go-Mailgen] ( https://github.com/ahmadfaizk/go-mailgen )
+[Go-Mailgen] (https://github.com/ahmadfaizk/go-mailgen)
 
 ************
 Hi John Doe,
@@ -8,7 +8,7 @@ You have received this email because a password reset request for your account w
 
 Click the button below to reset your password:
 
-Reset your password ( https://example.com/reset-password )
+Reset your password (https://example.com/reset-password)
 
 If you did not request a password reset, no further action is required on your part.
 

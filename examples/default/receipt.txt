@@ -1,4 +1,4 @@
-[Go-Mailgen] ( https://github.com/ahmadfaizk/go-mailgen )
+[Go-Mailgen] (https://github.com/ahmadfaizk/go-mailgen)
 
 ************
 Hi John Doe,
@@ -13,7 +13,7 @@ Mailgen | Programmatically create beautiful e-mails using Golang   |  $1.99
 
 You can check the status of your order and more in your dashboard:
 
-Go to Dashboard ( https://example.com/dashboard )
+Go to Dashboard (https://example.com/dashboard)
 
 We thank you for your purchase.
 
