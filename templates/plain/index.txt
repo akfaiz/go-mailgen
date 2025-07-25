@@ -6,29 +6,17 @@
 
 {{.Greeting}}
 
-{{range .IntroLines}}
-{{.}}
-{{end}}
-
-{{if .TableString}}
-{{.TableString}}
-{{end}}
-
-{{if .Action}}
-{{.Action.Text}} ( {{.Action.URL}} )
-{{end}}
-
-{{range .OutroLines}}
+{{range .ComponentsText}}
 {{.}}
 {{end}}
 
 {{.Salutation}},
 {{.Product.Name}}
 
-{{if .Action}}
-If you're having trouble clicking the "{{.Action.Text}}" button, copy and paste the URL below into your web browser:
+{{range .Actions}}
+If you're having trouble clicking the "{{.Text}}" button, copy and paste the URL below into your web browser:
 
-{{.Action.URL}}
+{{.URL}}
 {{end}}
 
 {{.Product.Copyright}}

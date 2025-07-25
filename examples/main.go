@@ -17,7 +17,7 @@ func main() {
 		"welcome": welcomeMessage(),
 		"receipt": receiptMessage(),
 	}
-	themes := []string{"default"}
+	themes := []string{"default", "plain"}
 
 	for _, theme := range themes {
 		for name, msg := range messages {
