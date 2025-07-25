@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/ahmadfaizk/go-mailgen"
+	"github.com/afkdevs/go-mailgen"
 )
 
 func main() {
@@ -12,7 +12,7 @@ func main() {
 		Product(
 			mailgen.Product{
 				Name: "Go-Mailgen",
-				Link: "https://github.com/ahmadfaizk/go-mailgen",
+				Link: "https://github.com/afkdevs/go-mailgen",
 				Logo: "https://upload.wikimedia.org/wikipedia/commons/0/05/Go_Logo_Blue.svg",
 			},
 		))

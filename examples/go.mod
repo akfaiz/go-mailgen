@@ -1,9 +1,9 @@
-module github.com/ahmadfaizk/go-mailgen/examples
+module github.com/afkdevs/go-mailgen/examples
 
 go 1.23.0
 
 require (
-	github.com/ahmadfaizk/go-mailgen v0.1.1
+	github.com/afkdevs/go-mailgen v0.1.1
 	github.com/wneessen/go-mail v0.6.2
 )
 
@@ -18,4 +18,4 @@ require (
 	golang.org/x/text v0.27.0 // indirect
 )
 
-replace github.com/ahmadfaizk/go-mailgen => ..
+replace github.com/afkdevs/go-mailgen => ..

@@ -4,14 +4,12 @@ import (
 	"bytes"
 	"fmt"
 	htmltemplate "html/template"
-	"maps"
 	"regexp"
 	"strings"
 	"sync/atomic"
 	"time"
 
-	"github.com/ahmadfaizk/go-mailgen/component"
-	"github.com/ahmadfaizk/go-mailgen/templates"
+	"github.com/afkdevs/go-mailgen/templates"
 	"github.com/vanng822/go-premailer/premailer"
 )
 
@@ -21,39 +19,6 @@ type Product struct {
 	Link      string
 	Logo      string // Optional logo URL
 	Copyright string
-}
-
-// Table represents a table component in the email message.
-type Table struct {
-	Data    [][]Entry
-	Columns Columns
-}
-
-// Entry represents a single entry in the table.
-type Entry struct {
-	Key   string
-	Value string
-}
-
-// Columns represents configuration for the table columns.
-type Columns struct {
-	CustomWidth map[string]string
-	CustomAlign map[string]string
-}
-
-// Action represents an action button in the email message.
-type Action struct {
-	Text       string
-	Link       string
-	Color      string // Default color is #3869D4
-	NoFallback bool   // If true, disables fallback for the action button
-}
-
-// Fallback represents a fallback action in the email message.
-type Fallback struct {
-	Text       string
-	Link       string
-	actionText string
 }
 
 // Builder represents an email message with various fields such as subject, recipients, and content.
@@ -71,8 +36,8 @@ type Builder struct {
 	greeting       string
 	name           string
 	salutation     string
-	components     []component.Component
-	fallbacks      []*Fallback
+	components     []Component
+	fallbacks      []*Action
 	fallbackFormat string
 	product        Product
 }
@@ -91,7 +56,7 @@ func newDefaultBuilder() *Builder {
 		salutation:    "Best regards",
 		product: Product{
 			Name:      "Go-Mailgen",
-			Link:      "https://github.com/ahmadfaizk/go-mailgen",
+			Link:      "https://github.com/afkdevs/go-mailgen",
 			Copyright: fmt.Sprintf("© %d Go-Mailgen. All rights reserved.", time.Now().Year()),
 		},
 		fallbackFormat: "If you're having trouble clicking the \"[ACTION]\" button, copy and paste the URL below into your web browser:",
@@ -112,8 +77,8 @@ func (b *Builder) clone() *Builder {
 		greeting:       b.greeting,
 		name:           b.name,
 		salutation:     b.salutation,
-		fallbacks:      append([]*Fallback{}, b.fallbacks...),
-		components:     append([]component.Component{}, b.components...),
+		fallbacks:      append([]*Action{}, b.fallbacks...),
+		components:     append([]Component{}, b.components...),
 		product:        b.product,
 	}
 }
@@ -127,7 +92,7 @@ func (b *Builder) clone() *Builder {
 //	mailgen.SetDefault(mailgen.New().
 //		Product(mailgen.Product{
 //			Name: "Go-Mailgen",
-//			Link: "https://github.com/ahmadfaizk/go-mailgen",
+//			Link: "https://github.com/afkdevs/go-mailgen",
 //			Logo: "https://upload.wikimedia.org/wikipedia/commons/0/05/Go_Logo_Blue.svg",
 //		}).
 //		Theme("default"))
@@ -285,7 +250,7 @@ func (b *Builder) Salutation(salutation string) *Builder {
 // Line adds a line of text to the email message.
 // If an action is set, it will be added to the outro lines; otherwise, it will be added to the intro lines.
 func (b *Builder) Line(text string) *Builder {
-	b.components = append(b.components, component.Line{Text: text})
+	b.components = append(b.components, Line{Text: text})
 	return b
 }
 
@@ -305,7 +270,7 @@ func (b *Builder) Linef(format string, args ...interface{}) *Builder {
 //		Line("Click the button below to get started").
 //		Action("Get Started", "https://example.com/get-started")
 func (b *Builder) Action(text, link string, cfg ...Action) *Builder {
-	action := &component.Action{
+	action := &Action{
 		Text:  text,
 		Link:  link,
 		Color: "#3869D4",
@@ -319,11 +284,7 @@ func (b *Builder) Action(text, link string, cfg ...Action) *Builder {
 	}
 	b.components = append(b.components, action)
 	if !noFallback {
-		fallback := &Fallback{
-			Link:       action.Link,
-			actionText: action.Text,
-		}
-		b.fallbacks = append(b.fallbacks, fallback)
+		b.fallbacks = append(b.fallbacks, action)
 	}
 	return b
 }
@@ -375,7 +336,7 @@ func (b *Builder) Table(table Table) *Builder {
 		return b // No table to add
 	}
 
-	b.components = append(b.components, table.component())
+	b.components = append(b.components, &table)
 	return b
 }
 
@@ -407,7 +368,7 @@ func (b *Builder) Build() (Message, error) {
 
 func (b *Builder) beforeBuild() {
 	for _, fallback := range b.fallbacks {
-		fallback.Text = strings.ReplaceAll(b.fallbackFormat, "[ACTION]", fallback.actionText)
+		fallback.FallbackText = strings.ReplaceAll(b.fallbackFormat, "[ACTION]", fallback.Text)
 	}
 }
 
@@ -418,7 +379,7 @@ type templateData struct {
 	Salutation     string
 	ComponentsHTML []htmltemplate.HTML
 	ComponentsText []string
-	Fallbacks      []*Fallback
+	Fallbacks      []*Action
 	Product        Product
 }
 
@@ -489,10 +450,9 @@ func cleanEmailHTML(input string) string {
 }
 
 func (b *Builder) generatePlaintext() (string, error) {
-	tmpl := templates.PlainTextTmpl
 	var componentsText []string
 	for _, comp := range b.components {
-		text, err := comp.PlainText(tmpl)
+		text, err := comp.PlainText()
 		if err != nil {
 			return "", err
 		}
@@ -505,10 +465,9 @@ func (b *Builder) generatePlaintext() (string, error) {
 		Salutation:     b.salutation,
 		Product:        b.product,
 		ComponentsText: componentsText,
-		Fallbacks:      b.fallbacks,
 	}
 	var buf bytes.Buffer
-	if err := tmpl.ExecuteTemplate(&buf, "index.txt", data); err != nil {
+	if err := templates.DefaultPlainTextTmpl.ExecuteTemplate(&buf, "index.txt", data); err != nil {
 		return "", err
 	}
 	text := buf.String()
@@ -534,27 +493,4 @@ func (b *Builder) greetingLine() string {
 		return defaultBuilder.Load().greeting
 	}
 	return b.greeting
-}
-
-func (t Table) component() component.Component {
-	tableComponent := component.Table{
-		Data: make([][]component.Entry, len(t.Data)),
-		Columns: component.Columns{
-			CustomWidth: make(map[string]string),
-			CustomAlign: make(map[string]string),
-		},
-	}
-	for i, row := range t.Data {
-		tableComponent.Data[i] = make([]component.Entry, len(row))
-		for j, entry := range row {
-			tableComponent.Data[i][j] = component.Entry{
-				Key:   entry.Key,
-				Value: entry.Value,
-			}
-		}
-	}
-	maps.Copy(tableComponent.Columns.CustomWidth, t.Columns.CustomWidth)
-	maps.Copy(tableComponent.Columns.CustomAlign, t.Columns.CustomAlign)
-
-	return &tableComponent
 }

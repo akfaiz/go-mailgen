@@ -1,4 +1,4 @@
-module github.com/ahmadfaizk/go-mailgen
+module github.com/afkdevs/go-mailgen
 
 go 1.23.0
 

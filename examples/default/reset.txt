@@ -1,4 +1,4 @@
-[Go-Mailgen] (https://github.com/ahmadfaizk/go-mailgen)
+[Go-Mailgen] (https://github.com/afkdevs/go-mailgen)
 
 ************
 Hi John Doe,

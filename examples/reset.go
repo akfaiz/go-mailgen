@@ -1,6 +1,6 @@
 package main
 
-import "github.com/ahmadfaizk/go-mailgen"
+import "github.com/afkdevs/go-mailgen"
 
 func resetMessage() *mailgen.Builder {
 	return mailgen.New().

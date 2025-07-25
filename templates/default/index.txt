@@ -13,8 +13,4 @@
 {{.Salutation}},
 {{.Product.Name}}
 
-{{range .Fallbacks}}
-{{template "subcopy" .}}
-{{end}}
-
 {{template "footer" .}}

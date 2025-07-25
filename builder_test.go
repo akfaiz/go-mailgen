@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ahmadfaizk/go-mailgen"
+	"github.com/afkdevs/go-mailgen"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
