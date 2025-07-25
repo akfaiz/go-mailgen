@@ -4,15 +4,15 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/ahmadfaizk/go-mailer"
+	"github.com/ahmadfaizk/go-mailgen"
 )
 
 func main() {
-	defaultProduct := mailer.Product{
+	defaultProduct := mailgen.Product{
 		Name: "GoMailer",
 		URL:  "https://github.com/ahmadfaizk/go-mailer",
 	}
-	messages := map[string]*mailer.Message{
+	messageBuilders := map[string]*mailgen.Builder{
 		"reset":   resetMessage(),
 		"welcome": welcomeMessage(),
 		"receipt": receiptMessage(),
@@ -20,65 +20,63 @@ func main() {
 	themes := []string{"default", "plain"}
 
 	for _, theme := range themes {
-		for name, msg := range messages {
-			msg.Product(defaultProduct)
-			msg.Theme(theme)
-			html, err := msg.GenerateHTML()
+		for name, builder := range messageBuilders {
+			builder.Product(defaultProduct)
+			builder.Theme(theme)
+
+			msg, err := builder.Build()
 			if err != nil {
-				panic(err)
-			}
-			plainText, err := msg.GeneratePlaintext()
-			if err != nil {
-				panic(err)
+				panic(fmt.Sprintf("failed to build message %s: %v", name, err))
 			}
 
 			htmlFileName := fmt.Sprintf("examples/%s/%s.html", theme, name)
 			plainTextFileName := fmt.Sprintf("examples/%s/%s.txt", theme, name)
 
-			if err := os.WriteFile(htmlFileName, []byte(html), 0644); err != nil {
+			if err := os.WriteFile(htmlFileName, []byte(msg.HTML()), 0644); err != nil {
 				panic(fmt.Sprintf("failed to write HTML file %s: %v", htmlFileName, err))
 			}
-			if err := os.WriteFile(plainTextFileName, []byte(plainText), 0644); err != nil {
+			if err := os.WriteFile(plainTextFileName, []byte(msg.PlainText()), 0644); err != nil {
 				panic(fmt.Sprintf("failed to write plaintext file %s: %v", plainTextFileName, err))
 			}
 		}
 	}
 }
 
-func resetMessage() *mailer.Message {
-	return mailer.NewMessage().
-		Subject("Reset your password").
-		To("recipient@example.com").
+func resetMessage() *mailgen.Builder {
+	return mailgen.New().
 		Preheader("Use this link to reset your password. The link is only valid for 24 hours.").
 		Line("Click the button below to reset your password").
 		Action("Reset your password", "https://example.com/reset-password").
 		Line("If you did not request this, please ignore this email")
 }
 
-func welcomeMessage() *mailer.Message {
-	return mailer.NewMessage().
-		Subject("Welcome to our service!").
-		To("recipient@example.com").
+func welcomeMessage() *mailgen.Builder {
+	return mailgen.New().
 		Line("Thank you for signing up for our service!").
 		Line("We're glad to have you on board.").
 		Line("If you have any questions, feel free to reach out to our support team.")
 }
 
-func receiptMessage() *mailer.Message {
-	return mailer.NewMessage().
-		Subject("Your order receipt").
-		To("recipient@example.com").
+func receiptMessage() *mailgen.Builder {
+	return mailgen.New().
 		Line("Thank you for your order!").
 		Line("Here are the details of your purchase:").
-		Table(mailer.Table{
-			Headers: []mailer.TableHeader{
-				{Text: "Item", Align: "left", Width: "50%"},
-				{Text: "Count", Align: "right", Width: "25%"},
-				{Text: "Price", Align: "right", Width: "25%"},
+		Table(mailgen.Table{
+			Data: [][]mailgen.Entry{
+				{{Key: "Item", Value: "Widget A"}, {Key: "Count", Value: "2"}, {Key: "Price", Value: "$20.00"}},
+				{{Key: "Item", Value: "Widget B"}, {Key: "Count", Value: "1"}, {Key: "Price", Value: "$15.00"}},
 			},
-			Rows: [][]string{
-				{"Widget A", "2", "$20.00"},
-				{"Widget B", "1", "$15.00"},
+			Columns: mailgen.Columns{
+				CustomWidth: map[string]string{
+					"Item":  "50%",
+					"Count": "25%",
+					"Price": "25%",
+				},
+				CustomAlign: map[string]string{
+					"Item":  "left",
+					"Count": "right",
+					"Price": "right",
+				},
 			},
 		}).
 		Line("Click the button below to view your order details.").

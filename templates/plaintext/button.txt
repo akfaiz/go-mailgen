@@ -1,0 +1,3 @@
+{{define "button"}}
+{{.Text}} ( {{.URL}} )
+{{end}}
