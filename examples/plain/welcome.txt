@@ -1,8 +1,8 @@
 [GoMailer] ( https://github.com/ahmadfaizk/go-mailer )
 
-************
+******
 Hello,
-************
+******
 
 Thank you for signing up for our service!
 
