@@ -32,6 +32,80 @@ func (tc testCase) run(t *testing.T, modifyBuilder ...func(*mailgen.Builder)) {
 	})
 }
 
+func TestSetDefault(t *testing.T) {
+	originalDefault := mailgen.New()
+	defer mailgen.SetDefault(originalDefault) // Restore original default after tests
+
+	t.Run("set valid builder as default", func(t *testing.T) {
+		customBuilder := mailgen.New()
+		customBuilder.Subject("Custom Default Subject").
+			Greeting("Custom Greeting").
+			Salutation("Custom Salutation").
+			Product(mailgen.Product{
+				Name:      "Custom Product",
+				URL:       "https://custom.com",
+				Copyright: "© 2023 Custom",
+			})
+
+		mailgen.SetDefault(customBuilder)
+
+		// Create a new message and verify it uses the custom defaults
+		msg, err := mailgen.New().Build()
+		require.NoError(t, err)
+
+		assert.Equal(t, "Custom Default Subject", msg.Subject())
+		assert.Contains(t, msg.HTML(), "Custom Greeting")
+		assert.Contains(t, msg.HTML(), "Custom Salutation")
+		assert.Contains(t, msg.HTML(), "Custom Product")
+		assert.Contains(t, msg.HTML(), "https://custom.com")
+		assert.Contains(t, msg.HTML(), "© 2023 Custom")
+	})
+
+	t.Run("set nil builder should not change default", func(t *testing.T) {
+		// First set a custom default
+		customBuilder := mailgen.New()
+		customBuilder.Subject("Before Nil Test")
+		mailgen.SetDefault(customBuilder)
+
+		// Verify the custom default is set
+		msg1, err := mailgen.New().Build()
+		require.NoError(t, err)
+		assert.Equal(t, "Before Nil Test", msg1.Subject())
+
+		// Try to set nil
+		mailgen.SetDefault(nil)
+
+		// Verify the default hasn't changed
+		msg2, err := mailgen.New().Build()
+		require.NoError(t, err)
+		assert.Equal(t, "Before Nil Test", msg2.Subject())
+	})
+
+	t.Run("new instances are independent after setting default", func(t *testing.T) {
+		customBuilder := mailgen.New()
+		customBuilder.Subject("Base Subject")
+		mailgen.SetDefault(customBuilder)
+
+		// Create two new instances
+		builder1 := mailgen.New().Subject("Modified Subject 1")
+		builder2 := mailgen.New().Subject("Modified Subject 2")
+
+		msg1, err := builder1.Build()
+		require.NoError(t, err)
+		msg2, err := builder2.Build()
+		require.NoError(t, err)
+
+		// Verify they have different subjects
+		assert.Equal(t, "Modified Subject 1", msg1.Subject())
+		assert.Equal(t, "Modified Subject 2", msg2.Subject())
+
+		// Verify a new unmodified instance still has the default
+		msg3, err := mailgen.New().Build()
+		require.NoError(t, err)
+		assert.Equal(t, "Base Subject", msg3.Subject())
+	})
+}
+
 func TestBuilder_Subject(t *testing.T) {
 	testCases := []testCase{
 		{
@@ -474,19 +548,12 @@ func TestBuilder_Build(t *testing.T) {
 			name: "reset password message",
 			builderFunc: func() *mailgen.Builder {
 				return mailgen.New().
-					Subject("Reset your password").
-					From("no-reply@example.com").
-					To("user@example.com").
 					Line("Click the link below to reset your password:").
 					Action("Reset Password", "https://example.com/reset").
 					Line("If you did not request this, please ignore this email.")
 			},
 			expectError: false,
 			expectFunc: func(msg mailgen.Message) {
-				assert.Equal(t, "Reset your password", msg.Subject(), "Subject should match the set value")
-				assert.Equal(t, "no-reply@example.com", msg.From().String(), "From should match the set value")
-				assert.Equal(t, []string{"user@example.com"}, msg.To(), "To should match the set value")
-
 				assert.Contains(t, msg.HTML(), "Click the link below to reset your password:", "HTML should contain the line text")
 				assert.Contains(t, msg.HTML(), "Reset Password", "HTML should contain the action text")
 				assert.Contains(t, msg.HTML(), "https://example.com/reset", "HTML should contain the action URL")
@@ -494,6 +561,65 @@ func TestBuilder_Build(t *testing.T) {
 				assert.Contains(t, msg.PlainText(), "Click the link below to reset your password:", "PlainText should match the set value")
 				assert.Contains(t, msg.PlainText(), "Reset Password", "PlainText should contain the action text")
 				assert.Contains(t, msg.PlainText(), "https://example.com/reset", "PlainText should contain the action URL")
+			},
+		},
+		{
+			name: "welcome message",
+			builderFunc: func() *mailgen.Builder {
+				return mailgen.New().
+					Line("Welcome to our service!").
+					Line("We're glad to have you on board.").
+					Line("If you have any questions, feel free to reach out to our support team.")
+			},
+			expectError: false,
+			expectFunc: func(msg mailgen.Message) {
+				assert.Contains(t, msg.HTML(), "Welcome to our service!", "HTML should contain the welcome message")
+				assert.Contains(t, msg.HTML(), "We&#39;re glad to have you on board.", "HTML should contain the second line")
+				assert.Contains(t, msg.HTML(), "If you have any questions, feel free to reach out to our support team.", "HTML should contain the third line")
+
+				assert.Contains(t, msg.PlainText(), "Welcome to our service!", "PlainText should match the set value")
+				assert.Contains(t, msg.PlainText(), "We're glad to have you on board.", "PlainText should contain the second line")
+				assert.Contains(t, msg.PlainText(), "If you have any questions, feel free to reach out to our support team.", "PlainText should contain the third line")
+			},
+		},
+		{
+			name: "invoice message",
+			builderFunc: func() *mailgen.Builder {
+				return mailgen.New().
+					Line("Thank you for your purchase!").
+					Line("Below are the details of your order:").
+					Table(mailgen.Table{
+						Headers: []mailgen.TableHeader{
+							{Text: "Item", Align: "left", Width: "70%"},
+							{Text: "Price", Align: "right", Width: "30%"},
+						},
+						Rows: [][]string{
+							{"Widget A", "$10.00"},
+							{"Widget B", "$15.00"},
+							{"Widget C", "$20.00"},
+							{"Total", "$45.00"},
+						},
+					}).
+					Line("Click the button below to track your order.").
+					Action("Track Order", "https://example.com/track-order").
+					Line("If you have any questions, please contact our support team.")
+			},
+			expectError: false,
+			expectFunc: func(msg mailgen.Message) {
+				assert.Contains(t, msg.HTML(), "Thank you for your purchase!", "HTML should contain the thank you message")
+				assert.Contains(t, msg.HTML(), "Below are the details of your order:", "HTML should contain the order details message")
+				assert.Contains(t, msg.HTML(), "<table", "HTML should contain a table")
+				assert.Contains(t, msg.HTML(), ">Widget A</", "HTML should contain the first row item")
+				assert.Contains(t, msg.HTML(), ">$10.00</", "HTML should contain the first row price")
+				assert.Contains(t, msg.HTML(), "Track Order", "HTML should contain the action text")
+				assert.Contains(t, msg.HTML(), "https://example.com/track-order", "HTML should contain the action URL")
+
+				assert.Contains(t, msg.PlainText(), "Thank you for your purchase!", "PlainText should match the set value")
+				assert.Contains(t, msg.PlainText(), "Below are the details of your order:", "PlainText should contain the order details message")
+				assert.Contains(t, msg.PlainText(), "Widget A", "PlainText should contain the first row item")
+				assert.Contains(t, msg.PlainText(), "$10.00", "PlainText should contain the first row price")
+				assert.Contains(t, msg.PlainText(), "Track Order", "PlainText should contain the action text")
+				assert.Contains(t, msg.PlainText(), "https://example.com/track-order", "PlainText should contain the action URL")
 			},
 		},
 	}
