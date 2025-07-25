@@ -121,6 +121,16 @@ func (b *Builder) clone() *Builder {
 // SetDefault sets the default Builder instance.
 //
 // It can be useful for set global defaults or configurations for the email messages.
+//
+// Example usage:
+//
+//	mailgen.SetDefault(mailgen.New().
+//		Product(mailgen.Product{
+//			Name: "Go-Mailgen",
+//			Link: "https://github.com/ahmadfaizk/go-mailgen",
+//			Logo: "https://upload.wikimedia.org/wikipedia/commons/0/05/Go_Logo_Blue.svg",
+//		}).
+//		Theme("default"))
 func SetDefault(b *Builder) {
 	if b == nil {
 		return
@@ -132,7 +142,7 @@ func SetDefault(b *Builder) {
 //
 // Example usage:
 //
-//	message := mailer.NewMessage().
+//	message := mailgen.New().
 //		Subject("Reset Password").
 //		To("recipient@example.com").
 //		Line("Click the button below to reset your password").
@@ -229,7 +239,8 @@ func (b *Builder) TextDirection(direction string) *Builder {
 //
 // Example usage:
 //
-//	message.FallbackFormat("If you're having trouble clicking the \"[ACTION]\" button, copy and paste the URL below into your web browser:")
+//	email := mailgen.New().
+//		FallbackFormat("If you're having trouble clicking the \"[ACTION]\" button, copy and paste the URL below into your web browser:")
 func (b *Builder) FallbackFormat(format string) *Builder {
 	if format == "" {
 		return b // No format provided, do nothing
@@ -285,9 +296,14 @@ func (b *Builder) Linef(format string, args ...interface{}) *Builder {
 	return b.Line(text)
 }
 
-// Action sets the action text and URL for the email message.
-// It creates a button in the email that links to the specified URL.
-// The action can also include an optional instruction and color for the button.
+// Action sets the action text and link for the email message.
+// It creates a button that the recipient can click to perform an action.
+//
+// Example usage:
+//
+//	email := mailgen.New().
+//		Line("Click the button below to get started").
+//		Action("Get Started", "https://example.com/get-started")
 func (b *Builder) Action(text, link string, cfg ...Action) *Builder {
 	action := &component.Action{
 		Text:  text,
@@ -331,8 +347,9 @@ func (b *Builder) Product(product Product) *Builder {
 //
 // Example usage:
 //
-//	message.Table(mailer.Table{
-//		Data: [][]mailer.Entry{
+//	email := mailgen.New().
+//		Table(mailgen.Table{
+//			Data: [][]mailgen.Entry{
 //			{
 //				{Key: "Name", Value: "John Doe"},
 //				{Key: "Email", Value: "john.doe@example.com"},
@@ -342,7 +359,7 @@ func (b *Builder) Product(product Product) *Builder {
 //				{Key: "Email", Value: "jane.smith@example.com"},
 //			},
 //		},
-//		Columns: mailer.Columns{
+//		Columns: mailgen.Columns{
 //			CustomWidth: map[string]string{
 //				"Name":  "50%",
 //				"Email": "50%",
@@ -363,7 +380,9 @@ func (b *Builder) Table(table Table) *Builder {
 }
 
 // Build generates the final Message object with the HTML and plaintext content.
+//
 // It processes all the components, actions, and other fields set in the Builder.
+//
 // Returns an error if there is an issue generating the HTML or plaintext content.
 func (b *Builder) Build() (Message, error) {
 	b.beforeBuild()

@@ -1,4 +1,4 @@
-[Go-Mailgen] ( https://github.com/ahmadfaizk/go-mailgen )
+[Go-Mailgen] (https://github.com/ahmadfaizk/go-mailgen)
 
 ************
 Hi John Doe,
@@ -8,7 +8,7 @@ Welcome to Go-Mailgen! We're very excited to have you on board.
 
 To get started with Mailgen, please click here:
 
-Get Started ( https://example.com/get-started )
+Get Started (https://example.com/get-started)
 
 We're glad to have you on board.
 

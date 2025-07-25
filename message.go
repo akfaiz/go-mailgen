@@ -1,15 +1,24 @@
 package mailgen
 
+// Message represents an email message with its components.
 type Message interface {
+	// Subject returns the subject of the email.
 	Subject() string
+	// From returns the sender's address.
 	From() Address
+	// To returns the list of recipient addresses.
 	To() []string
+	// Cc returns the list of CC addresses.
 	Cc() []string
+	// Bcc returns the list of BCC addresses.
 	Bcc() []string
+	// HTML returns the HTML content of the email.
 	HTML() string
+	// PlainText returns the plain text content of the email.
 	PlainText() string
 }
 
+// Address represents an email address with an optional name.
 type Address struct {
 	Name    string
 	Address string
