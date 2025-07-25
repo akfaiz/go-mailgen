@@ -16,26 +16,42 @@ import (
 )
 
 // Product represents the product information used in the email.
-// It includes the product name, logo URL, product URL, and copyright information.
 type Product struct {
 	Name      string
-	URL       string
+	Link      string
 	Copyright string
 }
 
+// Table represents a table component in the email message.
 type Table struct {
 	Data    [][]Entry
 	Columns Columns
 }
 
+// Entry represents a single entry in the table.
 type Entry struct {
 	Key   string
 	Value string
 }
 
+// Columns represents configuration for the table columns.
 type Columns struct {
 	CustomWidth map[string]string
 	CustomAlign map[string]string
+}
+
+// Action represents an action button in the email message.
+type Action struct {
+	Text            string
+	Link            string
+	Color           string // Default color is #3869D4
+	DisableFallback bool   // If true, disables fallback for the action button
+}
+
+// Fallback represents a fallback action in the email message.
+type Fallback struct {
+	Text string
+	Link string
 }
 
 // Builder represents an email message with various fields such as subject, recipients, and content.
@@ -50,9 +66,10 @@ type Builder struct {
 	theme      string
 	preheader  string
 	greeting   string
+	name       string
 	salutation string
-	actions    []*component.Action
 	components []component.Component
+	fallbacks  []*Fallback
 	product    Product
 }
 
@@ -65,11 +82,11 @@ func init() {
 func newDefaultBuilder() *Builder {
 	return &Builder{
 		theme:      "default",
-		greeting:   "Hello",
+		greeting:   "Hi",
 		salutation: "Best regards",
 		product: Product{
 			Name:      "Go-Mailgen",
-			URL:       "https://github.com/ahmadfaizk/go-mailgen",
+			Link:      "https://github.com/ahmadfaizk/go-mailgen",
 			Copyright: fmt.Sprintf("© %d Go-Mailgen. All rights reserved.", time.Now().Year()),
 		},
 	}
@@ -86,7 +103,7 @@ func (b *Builder) clone() *Builder {
 		preheader:  b.preheader,
 		greeting:   b.greeting,
 		salutation: b.salutation,
-		actions:    append([]*component.Action{}, b.actions...),
+		fallbacks:  append([]*Fallback{}, b.fallbacks...),
 		components: append([]component.Component{}, b.components...),
 		product:    b.product,
 	}
@@ -199,9 +216,18 @@ func (b *Builder) Preheader(preheader string) *Builder {
 }
 
 // Greeting sets the greeting line of the email message.
-// The default is "Hello".
+// The default is "Hi".
 func (b *Builder) Greeting(greeting string) *Builder {
 	b.greeting = greeting
+	return b
+}
+
+// Name sets the name of the greeting line in the email message.
+// This is typically used to personalize the greeting with the recipient's name.
+//
+// If not set, the greeting will be a generic "Hi".
+func (b *Builder) Name(name string) *Builder {
+	b.name = name
 	return b
 }
 
@@ -229,17 +255,33 @@ func (b *Builder) Linef(format string, args ...interface{}) *Builder {
 // Action sets the action text and URL for the email message.
 // It creates a button in the email that links to the specified URL.
 // The action can also include an optional instruction and color for the button.
-func (b *Builder) Action(text, url string, color ...string) *Builder {
+func (b *Builder) Action(text, link string, cfg ...Action) *Builder {
 	action := &component.Action{
 		Text:  text,
-		URL:   url,
+		Link:  link,
 		Color: "#3869D4",
 	}
-	if len(color) > 0 && color[0] != "" {
-		action.Color = color[0]
+	disableFallback := false
+	if len(cfg) > 0 {
+		if cfg[0].Text != "" {
+			action.Text = cfg[0].Text
+		}
+		if cfg[0].Link != "" {
+			action.Link = cfg[0].Link
+		}
+		if cfg[0].Color != "" {
+			action.Color = cfg[0].Color
+		}
+		disableFallback = cfg[0].DisableFallback
 	}
-	b.actions = append(b.actions, action)
 	b.components = append(b.components, action)
+	if !disableFallback {
+		fallback := &Fallback{
+			Link: action.Link,
+			Text: fmt.Sprintf("If you're having trouble clicking the \"%s\" button, copy and paste the URL below into your web browser: %s", action.Text, action.Link),
+		}
+		b.fallbacks = append(b.fallbacks, fallback)
+	}
 	return b
 }
 
@@ -251,12 +293,10 @@ func (b *Builder) Product(product Product) *Builder {
 	if b.product.Name == "" {
 		b.product.Name = defaultProduct.Name
 	}
-	if b.product.URL == "" {
-		b.product.URL = "#"
-	}
 	if b.product.Copyright == "" {
 		b.product.Copyright = fmt.Sprintf("© %d %s. All rights reserved.", time.Now().Year(), b.product.Name)
 	}
+	b.product.Link = product.Link
 	return b
 }
 
@@ -278,22 +318,6 @@ func (b *Builder) Table(table Table) *Builder {
 	if len(table.Data) == 0 {
 		return b // No table to add
 	}
-	// headers := make([]string, 0, len(table.Data[0]))
-	// for _, entry := range table.Data[0] {
-	// headers = append(headers, entry.Key)
-
-	// width, ok := table.Columns.CustomWidth[entry.Key]
-	// if !ok || width == "" {
-	// 	width = "auto"
-	// }
-	// table.Columns.CustomWidth[entry.Key] = width
-
-	// align, ok := table.Columns.CustomAlign[entry.Key]
-	// if !ok || align == "" {
-	// 	align = "left"
-	// }
-	// table.Columns.CustomAlign[entry.Key] = align
-	// }
 
 	b.components = append(b.components, table.component())
 	return b
@@ -329,7 +353,7 @@ type templateData struct {
 	Salutation     string
 	ComponentsHTML []htmltemplate.HTML
 	ComponentsText []string
-	Actions        []*component.Action // Used for sub-copy in HTML
+	Fallbacks      []*Fallback
 	Product        Product
 }
 
@@ -355,11 +379,11 @@ func (b *Builder) generateHTML() (string, error) {
 	data := templateData{
 		Theme:          b.theme,
 		Preheader:      b.preheader,
-		Greeting:       b.greeting,
+		Greeting:       b.greetingLine(),
 		Salutation:     b.salutation,
 		Product:        b.product,
 		ComponentsHTML: componentsHTML,
-		Actions:        b.actions,
+		Fallbacks:      b.fallbacks,
 	}
 	var buf bytes.Buffer
 
@@ -389,11 +413,12 @@ func (b *Builder) generatePlaintext() (string, error) {
 	}
 
 	data := templateData{
-		Greeting:       b.greeting,
+		Greeting:       b.greetingLine(),
 		Preheader:      b.preheader,
 		Salutation:     b.salutation,
 		Product:        b.product,
 		ComponentsText: componentsText,
+		Fallbacks:      b.fallbacks,
 	}
 	var buf bytes.Buffer
 	if err := tmpl.ExecuteTemplate(&buf, "index.txt", data); err != nil {
@@ -406,6 +431,16 @@ func (b *Builder) generatePlaintext() (string, error) {
 	text = re.ReplaceAllString(text, "\n\n")
 
 	return text, nil
+}
+
+func (b *Builder) greetingLine() string {
+	if b.name != "" {
+		return fmt.Sprintf("%s %s", b.greeting, b.name)
+	}
+	if b.greeting == "" {
+		return "Hi"
+	}
+	return b.greeting
 }
 
 func (t Table) component() component.Component {

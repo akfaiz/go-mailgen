@@ -21,7 +21,7 @@ func main() {
 		From("no-reply@example.com", "Go-Mailgen").
 		Product(mailgen.Product{
 			Name: "Go-Mailgen",
-			URL:  "https://github.com/ahmadfaizk/go-mailgen",
+			Link:  "https://github.com/ahmadfaizk/go-mailgen",
 		}).
 		Theme("default"),
 	)

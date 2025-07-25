@@ -10,7 +10,7 @@ import (
 func main() {
 	defaultProduct := mailgen.Product{
 		Name: "GoMailer",
-		URL:  "https://github.com/ahmadfaizk/go-mailer",
+		Link: "https://github.com/ahmadfaizk/go-mailer",
 	}
 	messageBuilders := map[string]*mailgen.Builder{
 		"reset":   resetMessage(),

@@ -442,7 +442,7 @@ font-family: Arial, sans-serif;
                       {{end}}
                       <p>{{.Salutation}},<br>{{.Product.Name}}</p>
                       <!-- Sub copy -->
-                      {{range .Actions}}
+                      {{range .Fallbacks}}
                       {{template "subcopy" .}}
                       {{end}}
                     </div>

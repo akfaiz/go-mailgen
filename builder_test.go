@@ -45,7 +45,7 @@ func TestSetDefault(t *testing.T) {
 			Salutation("Custom Salutation").
 			Product(mailgen.Product{
 				Name:      "Custom Product",
-				URL:       "https://custom.com",
+				Link:      "https://custom.com",
 				Copyright: "© 2023 Custom",
 			})
 
@@ -359,6 +359,39 @@ func TestBuilder_Greeting(t *testing.T) {
 				assert.Contains(t, msg.PlainText(), "Hi there", "PlainText should contain the greeting text")
 			},
 		},
+		{
+			name: "not set greeting should use default",
+			builderFunc: func() *mailgen.Builder {
+				return mailgen.New()
+			},
+			expectError: false,
+			expectFunc: func(msg mailgen.Message) {
+				assert.Contains(t, msg.HTML(), "Hi", "HTML should contain the default greeting text")
+				assert.Contains(t, msg.PlainText(), "Hi", "PlainText should contain the default greeting text")
+			},
+		},
+		{
+			name: "set greeting with name",
+			builderFunc: func() *mailgen.Builder {
+				return mailgen.New().Greeting("Hello").Name("John Doe")
+			},
+			expectError: false,
+			expectFunc: func(msg mailgen.Message) {
+				assert.Contains(t, msg.HTML(), "Hello John Doe", "HTML should contain the greeting with name")
+				assert.Contains(t, msg.PlainText(), "Hello John Doe", "PlainText should contain the greeting with name")
+			},
+		},
+		{
+			name: "set name without greeting",
+			builderFunc: func() *mailgen.Builder {
+				return mailgen.New().Name("Jane Doe")
+			},
+			expectError: false,
+			expectFunc: func(msg mailgen.Message) {
+				assert.Contains(t, msg.HTML(), "Hi Jane Doe", "HTML should contain the default greeting with name")
+				assert.Contains(t, msg.PlainText(), "Hi Jane Doe", "PlainText should contain the default greeting with name")
+			},
+		},
 	}
 	for _, tc := range testCases {
 		tc.run(t)
@@ -466,7 +499,7 @@ func TestBuilder_Action(t *testing.T) {
 		{
 			name: "add action with custom color",
 			builderFunc: func() *mailgen.Builder {
-				return mailgen.New().Action("Custom Button", "https://custom.com", "#FF0000")
+				return mailgen.New().Action("Custom Button", "https://custom.com", mailgen.Action{Color: "#FF0000"})
 			},
 			expectError: false,
 			expectFunc: func(msg mailgen.Message) {
@@ -490,7 +523,7 @@ func TestBuilder_Product(t *testing.T) {
 			builderFunc: func() *mailgen.Builder {
 				return mailgen.New().Product(mailgen.Product{
 					Name:      "Test Product",
-					URL:       "https://test.com",
+					Link:      "https://test.com",
 					Copyright: "© 2023 Test Product",
 				})
 			},
