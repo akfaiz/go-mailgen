@@ -26,6 +26,7 @@ type Product struct {
 type Builder struct {
 	subject string
 	from    Address
+	replyTo *Address
 	to      []string
 	cc      []string
 	bcc     []string
@@ -68,6 +69,7 @@ func (b *Builder) clone() *Builder {
 		textDirection:  b.textDirection,
 		subject:        b.subject,
 		from:           b.from,
+		replyTo:        &Address{Name: b.replyTo.Name, Address: b.replyTo.Address},
 		to:             append([]string{}, b.to...),
 		cc:             append([]string{}, b.cc...),
 		bcc:            append([]string{}, b.bcc...),
@@ -133,6 +135,19 @@ func (b *Builder) From(address string, name ...string) *Builder {
 		addr.Name = name[0]
 	}
 	b.from = addr
+	return b
+}
+
+// ReplyTo sets the Reply-To email address for the email message.
+// It can include a name for the Reply-To address.
+func (b *Builder) ReplyTo(address string, name ...string) *Builder {
+	addr := Address{
+		Address: address,
+	}
+	if len(name) > 0 {
+		addr.Name = name[0]
+	}
+	b.replyTo = &addr
 	return b
 }
 
@@ -358,6 +373,7 @@ func (b *Builder) Build() (Message, error) {
 	return &message{
 		subject:   b.subject,
 		from:      b.from,
+		replyTo:   b.replyTo,
 		to:        b.to,
 		cc:        b.cc,
 		bcc:       b.bcc,

@@ -41,7 +41,7 @@ func main() {
 	// Send the email
 	msg := mail.NewMsg()
 	msg.Subject(message.Subject())
-	msg.From(message.From().String())
+	msg.From(message.FromString())
 	msg.To(message.To()...)
 	msg.SetBodyString(mail.TypeTextPlain, message.PlainText())
 	msg.SetBodyString(mail.TypeTextHTML, message.HTML())
