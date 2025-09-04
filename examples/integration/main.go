@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/afkdevs/go-mailgen"
+	"github.com/akfaiz/go-mailgen"
 	"github.com/wneessen/go-mail"
 )
 
@@ -21,7 +21,7 @@ func main() {
 		From("no-reply@example.com", "Go-Mailgen").
 		Product(mailgen.Product{
 			Name: "Go-Mailgen",
-			Link: "https://github.com/afkdevs/go-mailgen",
+			Link: "https://github.com/akfaiz/go-mailgen",
 		}).
 		Theme("default"),
 	)

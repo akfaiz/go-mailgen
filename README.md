@@ -1,10 +1,10 @@
 # Go-Mailgen
 
-[![Go](https://github.com/afkdevs/go-mailgen/actions/workflows/ci.yml/badge.svg)](https://github.com/afkdevs/go-mailgen/actions/workflows/ci.yml)
-[![Go Report Card](https://goreportcard.com/badge/github.com/afkdevs/go-mailgen)](https://goreportcard.com/report/github.com/afkdevs/go-mailgen)
-[![codecov](https://codecov.io/gh/afkdevs/go-mailgen/graph/badge.svg?token=7tbSVRaD4b)](https://codecov.io/gh/afkdevs/go-mailgen)
-[![GoDoc](https://pkg.go.dev/badge/github.com/afkdevs/go-mailgen)](https://pkg.go.dev/github.com/afkdevs/go-mailgen)
-[![Go Version](https://img.shields.io/github/go-mod/go-version/afkdevs/go-mailgen)](https://golang.org/doc/devel/release.html)
+[![Go](https://github.com/akfaiz/go-mailgen/actions/workflows/ci.yml/badge.svg)](https://github.com/akfaiz/go-mailgen/actions/workflows/ci.yml)
+[![Go Report Card](https://goreportcard.com/badge/github.com/akfaiz/go-mailgen)](https://goreportcard.com/report/github.com/akfaiz/go-mailgen)
+[![codecov](https://codecov.io/gh/akfaiz/go-mailgen/graph/badge.svg?token=7tbSVRaD4b)](https://codecov.io/gh/akfaiz/go-mailgen)
+[![GoDoc](https://pkg.go.dev/badge/github.com/akfaiz/go-mailgen)](https://pkg.go.dev/github.com/akfaiz/go-mailgen)
+[![Go Version](https://img.shields.io/github/go-mod/go-version/akfaiz/go-mailgen)](https://golang.org/doc/devel/release.html)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
 <div align="center"><img src="./logo.png" width="150" alt="go-mailgen logo"/></div>
@@ -24,7 +24,7 @@
 To install Go-Mailgen, run the following command:
 
 ```bash
-go get github.com/afkdevs/go-mailgen
+go get github.com/akfaiz/go-mailgen
 ```
 
 ## Usage
@@ -35,7 +35,7 @@ Here's a simple example of how to use Go-Mailgen to create an email:
 package main
 
 import (
-	"github.com/afkdevs/go-mailgen"
+	"github.com/akfaiz/go-mailgen"
 	"github.com/wneessen/go-mail"
 )
 
@@ -55,7 +55,7 @@ func main() {
 		From("no-reply@example.com", "Go-Mailgen").
 		Product(mailgen.Product{
 			Name: "Go-Mailgen",
-			Link: "https://github.com/afkdevs/go-mailgen",
+			Link: "https://github.com/akfaiz/go-mailgen",
 		}).
 		Theme("default"),
 	)
@@ -91,7 +91,7 @@ You can find more examples in the [examples](examples) directory.
 
 ## Documentation
 
-For detailed documentation, please visit the [Go-Mailgen documentation](https://pkg.go.dev/github.com/afkdevs/go-mailgen).
+For detailed documentation, please visit the [Go-Mailgen documentation](https://pkg.go.dev/github.com/akfaiz/go-mailgen).
 
 ## Supported Themes
 

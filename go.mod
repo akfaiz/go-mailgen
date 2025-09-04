@@ -1,9 +1,9 @@
-module github.com/afkdevs/go-mailgen
+module github.com/akfaiz/go-mailgen
 
 go 1.23.0
 
 require (
-	github.com/stretchr/testify v1.10.0
+	github.com/stretchr/testify v1.11.1
 	github.com/vanng822/go-premailer v1.25.0
 )
 

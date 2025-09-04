@@ -6,6 +6,8 @@ type Message interface {
 	Subject() string
 	// From returns the sender's address.
 	From() Address
+	// FromString returns the sender's address as a formatted string.
+	FromString() string
 	// To returns the list of recipient addresses.
 	To() []string
 	// Cc returns the list of CC addresses.
@@ -49,6 +51,10 @@ func (m *message) Subject() string {
 
 func (m *message) From() Address {
 	return m.from
+}
+
+func (m *message) FromString() string {
+	return m.from.String()
 }
 
 func (m *message) To() []string {
