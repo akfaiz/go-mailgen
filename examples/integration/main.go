@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/afkdevs/go-mailgen"
+	"github.com/akfaiz/go-mailgen"
 	"github.com/wneessen/go-mail"
 )
 
@@ -21,7 +21,7 @@ func main() {
 		From("no-reply@example.com", "Go-Mailgen").
 		Product(mailgen.Product{
 			Name: "Go-Mailgen",
-			Link: "https://github.com/afkdevs/go-mailgen",
+			Link: "https://github.com/akfaiz/go-mailgen",
 		}).
 		Theme("default"),
 	)
@@ -41,7 +41,7 @@ func main() {
 	// Send the email
 	msg := mail.NewMsg()
 	msg.Subject(message.Subject())
-	msg.From(message.From().String())
+	msg.From(message.FromString())
 	msg.To(message.To()...)
 	msg.SetBodyString(mail.TypeTextPlain, message.PlainText())
 	msg.SetBodyString(mail.TypeTextHTML, message.HTML())

@@ -9,7 +9,7 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/afkdevs/go-mailgen/templates"
+	"github.com/akfaiz/go-mailgen/templates"
 	"github.com/vanng822/go-premailer/premailer"
 )
 
@@ -26,6 +26,7 @@ type Product struct {
 type Builder struct {
 	subject string
 	from    Address
+	replyTo *Address
 	to      []string
 	cc      []string
 	bcc     []string
@@ -56,7 +57,7 @@ func newDefaultBuilder() *Builder {
 		salutation:    "Best regards",
 		product: Product{
 			Name:      "Go-Mailgen",
-			Link:      "https://github.com/afkdevs/go-mailgen",
+			Link:      "https://github.com/akfaiz/go-mailgen",
 			Copyright: fmt.Sprintf("© %d Go-Mailgen. All rights reserved.", time.Now().Year()),
 		},
 		fallbackFormat: "If you're having trouble clicking the \"[ACTION]\" button, copy and paste the URL below into your web browser:",
@@ -64,7 +65,7 @@ func newDefaultBuilder() *Builder {
 }
 
 func (b *Builder) clone() *Builder {
-	return &Builder{
+	new := &Builder{
 		textDirection:  b.textDirection,
 		subject:        b.subject,
 		from:           b.from,
@@ -81,6 +82,11 @@ func (b *Builder) clone() *Builder {
 		components:     append([]Component{}, b.components...),
 		product:        b.product,
 	}
+	if b.replyTo != nil {
+		b.replyTo = &Address{Name: b.replyTo.Name, Address: b.replyTo.Address}
+	}
+
+	return new
 }
 
 // SetDefault sets the default Builder instance.
@@ -92,7 +98,7 @@ func (b *Builder) clone() *Builder {
 //	mailgen.SetDefault(mailgen.New().
 //		Product(mailgen.Product{
 //			Name: "Go-Mailgen",
-//			Link: "https://github.com/afkdevs/go-mailgen",
+//			Link: "https://github.com/akfaiz/go-mailgen",
 //			Logo: "https://upload.wikimedia.org/wikipedia/commons/0/05/Go_Logo_Blue.svg",
 //		}).
 //		Theme("default"))
@@ -133,6 +139,19 @@ func (b *Builder) From(address string, name ...string) *Builder {
 		addr.Name = name[0]
 	}
 	b.from = addr
+	return b
+}
+
+// ReplyTo sets the Reply-To email address for the email message.
+// It can include a name for the Reply-To address.
+func (b *Builder) ReplyTo(address string, name ...string) *Builder {
+	addr := Address{
+		Address: address,
+	}
+	if len(name) > 0 {
+		addr.Name = name[0]
+	}
+	b.replyTo = &addr
 	return b
 }
 
@@ -358,6 +377,7 @@ func (b *Builder) Build() (Message, error) {
 	return &message{
 		subject:   b.subject,
 		from:      b.from,
+		replyTo:   b.replyTo,
 		to:        b.to,
 		cc:        b.cc,
 		bcc:       b.bcc,

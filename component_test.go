@@ -4,7 +4,7 @@ import (
 	htmltemplate "html/template"
 	"testing"
 
-	"github.com/afkdevs/go-mailgen"
+	"github.com/akfaiz/go-mailgen"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

@@ -49,4 +49,4 @@ coverage-check:
 .PHONY: update-examples
 update-examples:
 	@echo "Updating example files..."
-	go run ./examples
+	go run ./examples/main.go

@@ -1,4 +1,4 @@
-[Go-Mailgen] (https://github.com/afkdevs/go-mailgen)
+[Go-Mailgen] (https://github.com/akfaiz/go-mailgen)
 
 ************
 Hi John Doe,
@@ -19,9 +19,5 @@ We thank you for your purchase.
 
 Best regards,
 Go-Mailgen
-
-If you're having trouble clicking the "Go to Dashboard" button, copy and paste the URL below into your web browser:
-
-https://example.com/dashboard
 
 © 2025 Go-Mailgen. All rights reserved.

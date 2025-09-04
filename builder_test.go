@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/afkdevs/go-mailgen"
+	"github.com/akfaiz/go-mailgen"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -166,6 +166,44 @@ func TestBuilder_From(t *testing.T) {
 			expectError: false,
 			expectFunc: func(msg mailgen.Message) {
 				assert.Equal(t, "", msg.From().String(), "From should be empty")
+			},
+		},
+	}
+	for _, tc := range testCases {
+		tc.run(t)
+	}
+}
+
+func TestBuilder_ReplyTo(t *testing.T) {
+	testCases := []testCase{
+		{
+			name: "set reply-to",
+			builderFunc: func() *mailgen.Builder {
+				return mailgen.New().ReplyTo("replyto@example.com")
+			},
+			expectError: false,
+			expectFunc: func(msg mailgen.Message) {
+				assert.Equal(t, "replyto@example.com", msg.ReplyToString(), "Reply-To should match the set value")
+			},
+		},
+		{
+			name: "set reply-to with name",
+			builderFunc: func() *mailgen.Builder {
+				return mailgen.New().ReplyTo("replyto@example.com", "Reply To Name")
+			},
+			expectError: false,
+			expectFunc: func(msg mailgen.Message) {
+				assert.Equal(t, "Reply To Name <replyto@example.com>", msg.ReplyToString(), "Reply-To should match the set value")
+			},
+		},
+		{
+			name: "not set reply-to",
+			builderFunc: func() *mailgen.Builder {
+				return mailgen.New()
+			},
+			expectError: false,
+			expectFunc: func(msg mailgen.Message) {
+				assert.Equal(t, "", msg.ReplyToString(), "Reply-To should be empty")
 			},
 		},
 	}
