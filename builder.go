@@ -65,11 +65,10 @@ func newDefaultBuilder() *Builder {
 }
 
 func (b *Builder) clone() *Builder {
-	return &Builder{
+	new := &Builder{
 		textDirection:  b.textDirection,
 		subject:        b.subject,
 		from:           b.from,
-		replyTo:        &Address{Name: b.replyTo.Name, Address: b.replyTo.Address},
 		to:             append([]string{}, b.to...),
 		cc:             append([]string{}, b.cc...),
 		bcc:            append([]string{}, b.bcc...),
@@ -83,6 +82,11 @@ func (b *Builder) clone() *Builder {
 		components:     append([]Component{}, b.components...),
 		product:        b.product,
 	}
+	if b.replyTo != nil {
+		b.replyTo = &Address{Name: b.replyTo.Name, Address: b.replyTo.Address}
+	}
+
+	return new
 }
 
 // SetDefault sets the default Builder instance.
