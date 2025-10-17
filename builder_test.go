@@ -121,13 +121,11 @@ func TestBuilder_Subject(t *testing.T) {
 			},
 		},
 		{
-			name: "not set subject",
-			builderFunc: func() *mailgen.Builder {
-				return mailgen.New()
-			},
+			name:        "not set subject",
+			builderFunc: mailgen.New,
 			expectError: false,
 			expectFunc: func(msg mailgen.Message) {
-				assert.Equal(t, "", msg.Subject(), "Subject should be empty")
+				assert.Empty(t, msg.Subject())
 			},
 		},
 	}
@@ -155,17 +153,20 @@ func TestBuilder_From(t *testing.T) {
 			},
 			expectError: false,
 			expectFunc: func(msg mailgen.Message) {
-				assert.Equal(t, "Sender Name <sender@example.com>", msg.From().String(), "From should match the set value")
+				assert.Equal(
+					t,
+					"Sender Name <sender@example.com>",
+					msg.From().String(),
+					"From should match the set value",
+				)
 			},
 		},
 		{
-			name: "not set from",
-			builderFunc: func() *mailgen.Builder {
-				return mailgen.New()
-			},
+			name:        "not set from",
+			builderFunc: mailgen.New,
 			expectError: false,
 			expectFunc: func(msg mailgen.Message) {
-				assert.Equal(t, "", msg.From().String(), "From should be empty")
+				assert.Empty(t, msg.FromString())
 			},
 		},
 	}
@@ -193,17 +194,20 @@ func TestBuilder_ReplyTo(t *testing.T) {
 			},
 			expectError: false,
 			expectFunc: func(msg mailgen.Message) {
-				assert.Equal(t, "Reply To Name <replyto@example.com>", msg.ReplyToString(), "Reply-To should match the set value")
+				assert.Equal(
+					t,
+					"Reply To Name <replyto@example.com>",
+					msg.ReplyToString(),
+					"Reply-To should match the set value",
+				)
 			},
 		},
 		{
-			name: "not set reply-to",
-			builderFunc: func() *mailgen.Builder {
-				return mailgen.New()
-			},
+			name:        "not set reply-to",
+			builderFunc: mailgen.New,
 			expectError: false,
 			expectFunc: func(msg mailgen.Message) {
-				assert.Equal(t, "", msg.ReplyToString(), "Reply-To should be empty")
+				assert.Empty(t, msg.ReplyToString())
 			},
 		},
 	}
@@ -238,10 +242,8 @@ func TestBuilder_To(t *testing.T) {
 			},
 		},
 		{
-			name: "set no recipients",
-			builderFunc: func() *mailgen.Builder {
-				return mailgen.New()
-			},
+			name:        "set no recipients",
+			builderFunc: mailgen.New,
 			expectError: false,
 			expectFunc: func(msg mailgen.Message) {
 				assert.Empty(t, msg.To(), "To should be empty when no recipients are set")
@@ -289,10 +291,8 @@ func TestBuilder_Cc(t *testing.T) {
 			},
 		},
 		{
-			name: "set no CCs",
-			builderFunc: func() *mailgen.Builder {
-				return mailgen.New()
-			},
+			name:        "set no CCs",
+			builderFunc: mailgen.New,
 			expectError: false,
 			expectFunc: func(msg mailgen.Message) {
 				assert.Empty(t, msg.Cc(), "CC should be empty when no recipients are set")
@@ -340,10 +340,8 @@ func TestBuilder_Bcc(t *testing.T) {
 			},
 		},
 		{
-			name: "set no BCCs",
-			builderFunc: func() *mailgen.Builder {
-				return mailgen.New()
-			},
+			name:        "set no BCCs",
+			builderFunc: mailgen.New,
 			expectError: false,
 			expectFunc: func(msg mailgen.Message) {
 				assert.Empty(t, msg.Bcc(), "BCC should be empty when no recipients are set")
@@ -375,7 +373,12 @@ func TestBuilder_Preheader(t *testing.T) {
 			expectError: false,
 			expectFunc: func(msg mailgen.Message) {
 				assert.Contains(t, msg.HTML(), "This is a preheader text", "HTML should contain the preheader text")
-				assert.Contains(t, msg.PlainText(), "This is a preheader text", "PlainText should contain the preheader text")
+				assert.Contains(
+					t,
+					msg.PlainText(),
+					"This is a preheader text",
+					"PlainText should contain the preheader text",
+				)
 			},
 		},
 	}
@@ -398,10 +401,8 @@ func TestBuilder_Greeting(t *testing.T) {
 			},
 		},
 		{
-			name: "not set greeting should use default",
-			builderFunc: func() *mailgen.Builder {
-				return mailgen.New()
-			},
+			name:        "not set greeting should use default",
+			builderFunc: mailgen.New,
 			expectError: false,
 			expectFunc: func(msg mailgen.Message) {
 				assert.Contains(t, msg.HTML(), "Hi", "HTML should contain the default greeting text")
@@ -427,7 +428,12 @@ func TestBuilder_Greeting(t *testing.T) {
 			expectError: false,
 			expectFunc: func(msg mailgen.Message) {
 				assert.Contains(t, msg.HTML(), "Hi Jane Doe", "HTML should contain the default greeting with name")
-				assert.Contains(t, msg.PlainText(), "Hi Jane Doe", "PlainText should contain the default greeting with name")
+				assert.Contains(
+					t,
+					msg.PlainText(),
+					"Hi Jane Doe",
+					"PlainText should contain the default greeting with name",
+				)
 			},
 		},
 		{
@@ -461,14 +467,17 @@ func TestBuilder_Salutation(t *testing.T) {
 			},
 		},
 		{
-			name: "not set salutation should use default",
-			builderFunc: func() *mailgen.Builder {
-				return mailgen.New()
-			},
+			name:        "not set salutation should use default",
+			builderFunc: mailgen.New,
 			expectError: false,
 			expectFunc: func(msg mailgen.Message) {
 				assert.Contains(t, msg.HTML(), "Best regards", "HTML should contain the default salutation text")
-				assert.Contains(t, msg.PlainText(), "Best regards", "PlainText should contain the default salutation text")
+				assert.Contains(
+					t,
+					msg.PlainText(),
+					"Best regards",
+					"PlainText should contain the default salutation text",
+				)
 			},
 		},
 	}
@@ -540,8 +549,18 @@ func TestBuilder_Action(t *testing.T) {
 			expectFunc: func(msg mailgen.Message) {
 				assert.Contains(t, msg.HTML(), "Click Here", "HTML should contain the action text")
 				assert.Contains(t, msg.HTML(), "https://example.com", "HTML should contain the action URL")
-				assert.Contains(t, msg.HTML(), "background-color:#3869D4", "HTML should contain the default action color")
-				assert.Contains(t, msg.HTML(), "If you&#39;re having trouble clicking", "HTML should contain the fallback text")
+				assert.Contains(
+					t,
+					msg.HTML(),
+					"background-color:#3869D4",
+					"HTML should contain the default action color",
+				)
+				assert.Contains(
+					t,
+					msg.HTML(),
+					"If you&#39;re having trouble clicking",
+					"HTML should contain the fallback text",
+				)
 				assert.Contains(t, msg.PlainText(), "Click Here", "PlainText should contain the action text")
 				assert.Contains(t, msg.PlainText(), "https://example.com", "PlainText should contain the action URL")
 			},
@@ -555,10 +574,25 @@ func TestBuilder_Action(t *testing.T) {
 			expectFunc: func(msg mailgen.Message) {
 				assert.Contains(t, msg.HTML(), "Custom Button", "HTML should contain the custom action text")
 				assert.Contains(t, msg.HTML(), "https://custom.com", "HTML should contain the custom action URL")
-				assert.Contains(t, msg.HTML(), "background-color:#FF0000", "HTML should contain the custom action color")
-				assert.Contains(t, msg.HTML(), "If you&#39;re having trouble clicking", "HTML should contain the fallback text")
+				assert.Contains(
+					t,
+					msg.HTML(),
+					"background-color:#FF0000",
+					"HTML should contain the custom action color",
+				)
+				assert.Contains(
+					t,
+					msg.HTML(),
+					"If you&#39;re having trouble clicking",
+					"HTML should contain the fallback text",
+				)
 				assert.Contains(t, msg.PlainText(), "Custom Button", "PlainText should contain the custom action text")
-				assert.Contains(t, msg.PlainText(), "https://custom.com", "PlainText should contain the custom action URL")
+				assert.Contains(
+					t,
+					msg.PlainText(),
+					"https://custom.com",
+					"PlainText should contain the custom action URL",
+				)
 			},
 		},
 		{
@@ -570,7 +604,12 @@ func TestBuilder_Action(t *testing.T) {
 			expectFunc: func(msg mailgen.Message) {
 				assert.Contains(t, msg.HTML(), "No Fallback", "HTML should contain the action text")
 				assert.Contains(t, msg.HTML(), "https://nofallback.com", "HTML should contain the action URL")
-				assert.NotContains(t, msg.HTML(), "If you&#39;re having trouble clicking", "HTML should not contain the fallback text")
+				assert.NotContains(
+					t,
+					msg.HTML(),
+					"If you&#39;re having trouble clicking",
+					"HTML should not contain the fallback text",
+				)
 				assert.Contains(t, msg.PlainText(), "No Fallback", "PlainText should contain the action text")
 				assert.Contains(t, msg.PlainText(), "https://nofallback.com", "PlainText should contain the action URL")
 			},
@@ -586,9 +625,19 @@ func TestBuilder_Action(t *testing.T) {
 			expectFunc: func(msg mailgen.Message) {
 				assert.Contains(t, msg.HTML(), "Custom Fallback", "HTML should contain the action text")
 				assert.Contains(t, msg.HTML(), "https://customfallback.com", "HTML should contain the action URL")
-				assert.Contains(t, msg.HTML(), "If you cannot click the button, visit this link:", "HTML should contain the custom fallback text")
+				assert.Contains(
+					t,
+					msg.HTML(),
+					"If you cannot click the button, visit this link:",
+					"HTML should contain the custom fallback text",
+				)
 				assert.Contains(t, msg.PlainText(), "Custom Fallback", "PlainText should contain the action text")
-				assert.Contains(t, msg.PlainText(), "https://customfallback.com", "PlainText should contain the action URL")
+				assert.Contains(
+					t,
+					msg.PlainText(),
+					"https://customfallback.com",
+					"PlainText should contain the action URL",
+				)
 			},
 		},
 	}
@@ -615,7 +664,12 @@ func TestBuilder_Product(t *testing.T) {
 				assert.Contains(t, msg.HTML(), "© 2023 Test Product", "HTML should contain the product copyright")
 				assert.Contains(t, msg.PlainText(), "Test Product", "PlainText should contain the product name")
 				assert.Contains(t, msg.PlainText(), "https://test.com", "PlainText should contain the product URL")
-				assert.Contains(t, msg.PlainText(), "© 2023 Test Product", "PlainText should contain the product copyright")
+				assert.Contains(
+					t,
+					msg.PlainText(),
+					"© 2023 Test Product",
+					"PlainText should contain the product copyright",
+				)
 			},
 		},
 		{
@@ -631,7 +685,12 @@ func TestBuilder_Product(t *testing.T) {
 				assert.Contains(t, msg.HTML(), "Test Product", "HTML should contain the product name")
 				assert.Contains(t, msg.HTML(), defaultCopyright, "HTML should contain the default product copyright")
 				assert.Contains(t, msg.PlainText(), "Test Product", "PlainText should contain the product name")
-				assert.Contains(t, msg.PlainText(), defaultCopyright, "PlainText should contain the default product copyright")
+				assert.Contains(
+					t,
+					msg.PlainText(),
+					defaultCopyright,
+					"PlainText should contain the default product copyright",
+				)
 			},
 		},
 		{
@@ -645,9 +704,24 @@ func TestBuilder_Product(t *testing.T) {
 			expectFunc: func(msg mailgen.Message) {
 				defaultProductName := "Go-Mailgen"
 				assert.Contains(t, msg.HTML(), defaultProductName, "HTML should contain the default product name")
-				assert.Contains(t, msg.HTML(), "© 2023 Test Product. All rights reserved.", "HTML should contain the product copyright")
-				assert.Contains(t, msg.PlainText(), "© 2023 Test Product. All rights reserved.", "PlainText should contain the product copyright")
-				assert.Contains(t, msg.PlainText(), defaultProductName, "PlainText should contain the default product name")
+				assert.Contains(
+					t,
+					msg.HTML(),
+					"© 2023 Test Product. All rights reserved.",
+					"HTML should contain the product copyright",
+				)
+				assert.Contains(
+					t,
+					msg.PlainText(),
+					"© 2023 Test Product. All rights reserved.",
+					"PlainText should contain the product copyright",
+				)
+				assert.Contains(
+					t,
+					msg.PlainText(),
+					defaultProductName,
+					"PlainText should contain the default product name",
+				)
 			},
 		},
 	}
@@ -663,8 +737,18 @@ func TestBuilder_Table(t *testing.T) {
 			builderFunc: func() *mailgen.Builder {
 				return mailgen.New().Table(mailgen.Table{
 					Data: [][]mailgen.Entry{
-						{{Key: "Item", Value: "Widget A"}, {Key: "Price", Value: "$10.00"}, {Key: "Count", Value: "2"}, {Key: "Total", Value: "$20.00"}},
-						{{Key: "Item", Value: "Widget B"}, {Key: "Price", Value: "$150.00"}, {Key: "Count", Value: "1"}, {Key: "Total", Value: "$150.00"}},
+						{
+							{Key: "Item", Value: "Widget A"},
+							{Key: "Price", Value: "$10.00"},
+							{Key: "Count", Value: "2"},
+							{Key: "Total", Value: "$20.00"},
+						},
+						{
+							{Key: "Item", Value: "Widget B"},
+							{Key: "Price", Value: "$150.00"},
+							{Key: "Count", Value: "1"},
+							{Key: "Total", Value: "$150.00"},
+						},
 					},
 					Columns: mailgen.Columns{
 						CustomAlign: map[string]string{
@@ -689,11 +773,11 @@ func TestBuilder_Table(t *testing.T) {
 					">1</",
 				}
 				for _, str := range htmlContains {
-					assert.Contains(t, msg.HTML(), str, fmt.Sprintf("HTML should contain '%s'", str))
+					assert.Contains(t, msg.HTML(), str, "HTML should contain '%s'", str)
 				}
 				textContains := []string{"Item", "Widget A", "$10.00", "2", "$20.00", "Widget B", "$150.00", "1"}
 				for _, str := range textContains {
-					assert.Contains(t, msg.PlainText(), str, fmt.Sprintf("PlainText should contain '%s'", str))
+					assert.Contains(t, msg.PlainText(), str, "PlainText should contain '%s'", str)
 				}
 			},
 		},
@@ -716,7 +800,12 @@ func TestBuilder_Table(t *testing.T) {
 			},
 			expectError: false,
 			expectFunc: func(msg mailgen.Message) {
-				assert.NotContains(t, msg.PlainText(), "Item", "PlainText should not contain table headers when no data is provided")
+				assert.NotContains(
+					t,
+					msg.PlainText(),
+					"Item",
+					"PlainText should not contain table headers when no data is provided",
+				)
 			},
 		},
 	}
@@ -738,13 +827,28 @@ func TestBuilder_Build(t *testing.T) {
 			},
 			expectError: false,
 			expectFunc: func(msg mailgen.Message) {
-				assert.Contains(t, msg.HTML(), "Click the link below to reset your password:", "HTML should contain the line text")
+				assert.Contains(
+					t,
+					msg.HTML(),
+					"Click the link below to reset your password:",
+					"HTML should contain the line text",
+				)
 				assert.Contains(t, msg.HTML(), "Reset Password", "HTML should contain the action text")
 				assert.Contains(t, msg.HTML(), "https://example.com/reset", "HTML should contain the action URL")
 
-				assert.Contains(t, msg.PlainText(), "Click the link below to reset your password:", "PlainText should match the set value")
+				assert.Contains(
+					t,
+					msg.PlainText(),
+					"Click the link below to reset your password:",
+					"PlainText should match the set value",
+				)
 				assert.Contains(t, msg.PlainText(), "Reset Password", "PlainText should contain the action text")
-				assert.Contains(t, msg.PlainText(), "https://example.com/reset", "PlainText should contain the action URL")
+				assert.Contains(
+					t,
+					msg.PlainText(),
+					"https://example.com/reset",
+					"PlainText should contain the action URL",
+				)
 			},
 		},
 		{
@@ -758,12 +862,32 @@ func TestBuilder_Build(t *testing.T) {
 			expectError: false,
 			expectFunc: func(msg mailgen.Message) {
 				assert.Contains(t, msg.HTML(), "Welcome to our service!", "HTML should contain the welcome message")
-				assert.Contains(t, msg.HTML(), "We&#39;re glad to have you on board.", "HTML should contain the second line")
-				assert.Contains(t, msg.HTML(), "If you have any questions, feel free to reach out to our support team.", "HTML should contain the third line")
+				assert.Contains(
+					t,
+					msg.HTML(),
+					"We&#39;re glad to have you on board.",
+					"HTML should contain the second line",
+				)
+				assert.Contains(
+					t,
+					msg.HTML(),
+					"If you have any questions, feel free to reach out to our support team.",
+					"HTML should contain the third line",
+				)
 
 				assert.Contains(t, msg.PlainText(), "Welcome to our service!", "PlainText should match the set value")
-				assert.Contains(t, msg.PlainText(), "We're glad to have you on board.", "PlainText should contain the second line")
-				assert.Contains(t, msg.PlainText(), "If you have any questions, feel free to reach out to our support team.", "PlainText should contain the third line")
+				assert.Contains(
+					t,
+					msg.PlainText(),
+					"We're glad to have you on board.",
+					"PlainText should contain the second line",
+				)
+				assert.Contains(
+					t,
+					msg.PlainText(),
+					"If you have any questions, feel free to reach out to our support team.",
+					"PlainText should contain the third line",
+				)
 			},
 		},
 		{
@@ -796,20 +920,45 @@ func TestBuilder_Build(t *testing.T) {
 			},
 			expectError: false,
 			expectFunc: func(msg mailgen.Message) {
-				assert.Contains(t, msg.HTML(), "Thank you for your purchase!", "HTML should contain the thank you message")
-				assert.Contains(t, msg.HTML(), "Below are the details of your order:", "HTML should contain the order details message")
+				assert.Contains(
+					t,
+					msg.HTML(),
+					"Thank you for your purchase!",
+					"HTML should contain the thank you message",
+				)
+				assert.Contains(
+					t,
+					msg.HTML(),
+					"Below are the details of your order:",
+					"HTML should contain the order details message",
+				)
 				assert.Contains(t, msg.HTML(), "<table", "HTML should contain a table")
 				assert.Contains(t, msg.HTML(), ">Widget A</", "HTML should contain the first row item")
 				assert.Contains(t, msg.HTML(), ">$10.00</", "HTML should contain the first row price")
 				assert.Contains(t, msg.HTML(), "Track Order", "HTML should contain the action text")
 				assert.Contains(t, msg.HTML(), "https://example.com/track-order", "HTML should contain the action URL")
 
-				assert.Contains(t, msg.PlainText(), "Thank you for your purchase!", "PlainText should match the set value")
-				assert.Contains(t, msg.PlainText(), "Below are the details of your order:", "PlainText should contain the order details message")
+				assert.Contains(
+					t,
+					msg.PlainText(),
+					"Thank you for your purchase!",
+					"PlainText should match the set value",
+				)
+				assert.Contains(
+					t,
+					msg.PlainText(),
+					"Below are the details of your order:",
+					"PlainText should contain the order details message",
+				)
 				assert.Contains(t, msg.PlainText(), "Widget A", "PlainText should contain the first row item")
 				assert.Contains(t, msg.PlainText(), "$10.00", "PlainText should contain the first row price")
 				assert.Contains(t, msg.PlainText(), "Track Order", "PlainText should contain the action text")
-				assert.Contains(t, msg.PlainText(), "https://example.com/track-order", "PlainText should contain the action URL")
+				assert.Contains(
+					t,
+					msg.PlainText(),
+					"https://example.com/track-order",
+					"PlainText should contain the action URL",
+				)
 			},
 		},
 	}
@@ -846,10 +995,8 @@ func TestBuilder_TextDirection(t *testing.T) {
 			},
 		},
 		{
-			name: "default text direction should be ltr",
-			builderFunc: func() *mailgen.Builder {
-				return mailgen.New()
-			},
+			name:        "default text direction should be ltr",
+			builderFunc: mailgen.New,
 			expectError: false,
 			expectFunc: func(msg mailgen.Message) {
 				assert.Contains(t, msg.HTML(), `dir="ltr"`, "HTML should contain default ltr text direction")
@@ -862,7 +1009,12 @@ func TestBuilder_TextDirection(t *testing.T) {
 			},
 			expectError: false,
 			expectFunc: func(msg mailgen.Message) {
-				assert.Contains(t, msg.HTML(), `dir="ltr"`, "HTML should still contain ltr text direction when invalid direction is set")
+				assert.Contains(
+					t,
+					msg.HTML(),
+					`dir="ltr"`,
+					"HTML should still contain ltr text direction when invalid direction is set",
+				)
 			},
 		},
 		{
@@ -872,7 +1024,12 @@ func TestBuilder_TextDirection(t *testing.T) {
 			},
 			expectError: false,
 			expectFunc: func(msg mailgen.Message) {
-				assert.Contains(t, msg.HTML(), `dir="ltr"`, "HTML should still contain ltr text direction when empty direction is set")
+				assert.Contains(
+					t,
+					msg.HTML(),
+					`dir="ltr"`,
+					"HTML should still contain ltr text direction when empty direction is set",
+				)
 			},
 		},
 		{
@@ -884,7 +1041,12 @@ func TestBuilder_TextDirection(t *testing.T) {
 			expectFunc: func(msg mailgen.Message) {
 				assert.Contains(t, msg.HTML(), `dir="rtl"`, "HTML should contain rtl text direction")
 				assert.Contains(t, msg.HTML(), "أحمد مرحبا", "HTML should contain greeting with name in RTL order")
-				assert.Contains(t, msg.PlainText(), "أحمد مرحبا", "PlainText should contain greeting with name in RTL order")
+				assert.Contains(
+					t,
+					msg.PlainText(),
+					"أحمد مرحبا",
+					"PlainText should contain greeting with name in RTL order",
+				)
 			},
 		},
 		{
@@ -896,7 +1058,12 @@ func TestBuilder_TextDirection(t *testing.T) {
 			expectFunc: func(msg mailgen.Message) {
 				assert.Contains(t, msg.HTML(), `dir="ltr"`, "HTML should contain ltr text direction")
 				assert.Contains(t, msg.HTML(), "Hello John", "HTML should contain greeting with name in LTR order")
-				assert.Contains(t, msg.PlainText(), "Hello John", "PlainText should contain greeting with name in LTR order")
+				assert.Contains(
+					t,
+					msg.PlainText(),
+					"Hello John",
+					"PlainText should contain greeting with name in LTR order",
+				)
 			},
 		},
 	}

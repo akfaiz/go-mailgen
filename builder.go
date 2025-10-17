@@ -65,7 +65,7 @@ func newDefaultBuilder() *Builder {
 }
 
 func (b *Builder) clone() *Builder {
-	new := &Builder{
+	cloned := &Builder{
 		textDirection:  b.textDirection,
 		subject:        b.subject,
 		from:           b.from,
@@ -83,10 +83,10 @@ func (b *Builder) clone() *Builder {
 		product:        b.product,
 	}
 	if b.replyTo != nil {
-		b.replyTo = &Address{Name: b.replyTo.Name, Address: b.replyTo.Address}
+		cloned.replyTo = &Address{Name: b.replyTo.Name, Address: b.replyTo.Address}
 	}
 
-	return new
+	return cloned
 }
 
 // SetDefault sets the default Builder instance.
@@ -405,9 +405,9 @@ type templateData struct {
 
 func (b *Builder) htmlTemplate() *htmltemplate.Template {
 	if b.theme == "plain" {
-		return templates.PlainHtmlTmpl
+		return templates.PlainHTMLTmpl
 	}
-	return templates.DefaultHtmlTmpl
+	return templates.DefaultHTMLTmpl
 }
 
 func (b *Builder) generateHTML() (string, error) {
@@ -419,7 +419,7 @@ func (b *Builder) generateHTML() (string, error) {
 		if err != nil {
 			return "", err
 		}
-		componentsHTML = append(componentsHTML, htmltemplate.HTML(html))
+		componentsHTML = append(componentsHTML, htmltemplate.HTML(html)) //nolint:gosec // trusted HTML from templates
 	}
 
 	data := templateData{

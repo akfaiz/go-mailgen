@@ -11,7 +11,7 @@ import (
 //go:embed default/*
 var defaultFS embed.FS
 
-var DefaultHtmlTmpl = htmltemplate.Must(htmltemplate.New("index.html").
+var DefaultHTMLTmpl = htmltemplate.Must(htmltemplate.New("index.html").
 	Funcs(htmlTemplateFuncs).
 	ParseFS(defaultFS, "default/*.html"),
 )
@@ -24,7 +24,7 @@ var DefaultPlainTextTmpl = texttemplate.Must(texttemplate.New("index.txt").
 //go:embed plain/*
 var plainFS embed.FS
 
-var PlainHtmlTmpl = htmltemplate.Must(htmltemplate.New("index.html").
+var PlainHTMLTmpl = htmltemplate.Must(htmltemplate.New("index.html").
 	Funcs(htmlTemplateFuncs).
 	ParseFS(plainFS, "plain/*.html"),
 )

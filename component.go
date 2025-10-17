@@ -153,6 +153,13 @@ func (t Table) PlainText() (string, error) {
 
 	var sb strings.Builder
 
+	t.writeHeader(&sb, columnNames, colWidths)
+	t.writeData(&sb, t.Data, columnNames, colWidths)
+
+	return sb.String(), nil
+}
+
+func (t Table) writeHeader(sb *strings.Builder, columnNames []string, colWidths map[string]int) {
 	// Header row
 	for i, col := range columnNames {
 		sb.WriteString(t.padString(t.capitalize(col), colWidths[col], t.Columns.CustomAlign[col]))
@@ -170,9 +177,10 @@ func (t Table) PlainText() (string, error) {
 		}
 	}
 	sb.WriteString("\n")
+}
 
-	// Data rows
-	for _, row := range t.Data {
+func (t Table) writeData(sb *strings.Builder, data [][]Entry, columnNames []string, colWidths map[string]int) {
+	for _, row := range data {
 		entryMap := make(map[string]string)
 		for _, e := range row {
 			entryMap[e.Key] = e.Value
@@ -186,8 +194,6 @@ func (t Table) PlainText() (string, error) {
 		}
 		sb.WriteString("\n")
 	}
-
-	return sb.String(), nil
 }
 
 func (t Table) padString(s string, width int, align string) string {
@@ -196,7 +202,7 @@ func (t Table) padString(s string, width int, align string) string {
 		return fmt.Sprintf("%*s", width, s)
 	case "center":
 		pad := width - len(s)
-		left := pad / 2
+		left := pad / 2 //nolint:mnd // integer division
 		right := pad - left
 		return strings.Repeat(" ", left) + s + strings.Repeat(" ", right)
 	default: // left
