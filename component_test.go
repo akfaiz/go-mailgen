@@ -58,10 +58,10 @@ func TestAction_HTML(t *testing.T) {
 			result, err := tt.action.HTML(tmpl)
 
 			if tt.wantErr {
-				assert.Error(t, err)
+				require.Error(t, err)
 				assert.Empty(t, result)
 			} else {
-				assert.NoError(t, err)
+				require.NoError(t, err)
 				assert.Equal(t, tt.expected, result)
 			}
 		})
@@ -113,10 +113,10 @@ func TestLine_HTML(t *testing.T) {
 			result, err := tt.line.HTML(tmpl)
 
 			if tt.wantErr {
-				assert.Error(t, err)
+				require.Error(t, err)
 				assert.Empty(t, result)
 			} else {
-				assert.NoError(t, err)
+				require.NoError(t, err)
 				assert.Equal(t, tt.expected, result)
 			}
 		})
@@ -214,10 +214,10 @@ func TestTable_HTML(t *testing.T) {
 			result, err := tt.table.HTML(tmpl)
 
 			if tt.wantErr {
-				assert.Error(t, err)
+				require.Error(t, err)
 				assert.Empty(t, result)
 			} else {
-				assert.NoError(t, err)
+				require.NoError(t, err)
 				assert.Equal(t, tt.expected, result)
 			}
 		})
@@ -404,9 +404,9 @@ func TestTable_PlainText(t *testing.T) {
 			result, err := tt.table.PlainText()
 
 			if tt.wantErr {
-				assert.Error(t, err)
+				require.Error(t, err)
 			} else {
-				assert.NoError(t, err)
+				require.NoError(t, err)
 				assert.Equal(t, tt.expected, result)
 			}
 		})
@@ -463,9 +463,9 @@ func TestAction_PlainText(t *testing.T) {
 			result, err := tt.action.PlainText()
 
 			if tt.wantErr {
-				assert.Error(t, err)
+				require.Error(t, err)
 			} else {
-				assert.NoError(t, err)
+				require.NoError(t, err)
 				assert.Equal(t, tt.expected, result)
 			}
 		})
@@ -510,9 +510,9 @@ func TestLine_PlainText(t *testing.T) {
 			result, err := tt.line.PlainText()
 
 			if tt.wantErr {
-				assert.Error(t, err)
+				require.Error(t, err)
 			} else {
-				assert.NoError(t, err)
+				require.NoError(t, err)
 				assert.Equal(t, tt.expected, result)
 			}
 		})
