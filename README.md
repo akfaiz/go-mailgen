@@ -111,6 +111,39 @@ The following open-source themes are bundled with this package:
 |---------|----------------|---------|
 | <img src="examples/plain/welcome.png" height="200" /> | <img src="examples/plain/reset.png" height="200" /> | <img src="examples/plain/receipt.png" height="200" /> |
 
+### Custom Theme
+
+You can register your own theme templates and use it via `Theme(...)`:
+
+```go
+import (
+	htmltemplate "html/template"
+	texttemplate "text/template"
+	"github.com/akfaiz/go-mailgen"
+)
+
+htmlTmpl := htmltemplate.Must(htmltemplate.New("index.html").Parse(`
+	{{define "index.html"}}<html><body>{{range .ComponentsHTML}}{{.}}{{end}}</body></html>{{end}}
+	{{define "line"}}<p>{{.Text}}</p>{{end}}
+	{{define "button"}}<a href="{{.Link}}">{{.Text}}</a>{{end}}
+	{{define "table"}}{{end}}
+`))
+
+textTmpl := texttemplate.Must(texttemplate.New("index.txt").Parse(`
+	{{define "index.txt"}}{{range .ComponentsText}}{{.}}{{"\n"}}{{end}}{{end}}
+`))
+
+mailgen.MustRegisterTheme("my-theme", mailgen.Theme{
+	HTML:      htmlTmpl,
+	PlainText: textTmpl, // optional, defaults to built-in plain text template
+})
+
+message, err := mailgen.New().
+	Theme("my-theme").
+	Line("Hello from custom theme").
+	Build()
+```
+
 ## RTL Support
 
 To change default text direction to RTL, you can use the `TextDirection` method:

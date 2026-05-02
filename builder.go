@@ -9,7 +9,6 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/akfaiz/go-mailgen/templates"
 	"github.com/vanng822/go-premailer/premailer"
 )
 
@@ -205,7 +204,7 @@ func (b *Builder) Bcc(bcc string, others ...string) *Builder {
 }
 
 // Theme sets the theme for the email message.
-// Supported themes are "default" and "plain".
+// Built-in themes are "default" and "plain". Custom themes can be added via RegisterTheme.
 func (b *Builder) Theme(theme string) *Builder {
 	b.theme = theme
 	return b
@@ -413,15 +412,9 @@ type templateData struct {
 	Product        Product
 }
 
-func (b *Builder) htmlTemplate() *htmltemplate.Template {
-	if b.theme == "plain" {
-		return templates.PlainHTMLTmpl
-	}
-	return templates.DefaultHTMLTmpl
-}
-
 func (b *Builder) generateHTML() (string, error) {
-	tmpl := b.htmlTemplate()
+	theme := resolveTheme(b.theme)
+	tmpl := theme.HTML
 
 	var componentsHTML []htmltemplate.HTML
 	for _, comp := range b.components {
@@ -483,6 +476,8 @@ func cleanEmailHTML(input string) string {
 }
 
 func (b *Builder) generatePlaintext() (string, error) {
+	theme := resolveTheme(b.theme)
+
 	var componentsText []string
 	for _, comp := range b.components {
 		text, err := comp.PlainText()
@@ -500,7 +495,7 @@ func (b *Builder) generatePlaintext() (string, error) {
 		ComponentsText: componentsText,
 	}
 	var buf bytes.Buffer
-	if err := templates.DefaultPlainTextTmpl.ExecuteTemplate(&buf, "index.txt", data); err != nil {
+	if err := theme.PlainText.ExecuteTemplate(&buf, "index.txt", data); err != nil {
 		return "", err
 	}
 	text := buf.String()
