@@ -646,6 +646,79 @@ func TestBuilder_Action(t *testing.T) {
 	}
 }
 
+func TestBuilder_PostmarkCompatibilityMarkers(t *testing.T) {
+	for _, theme := range []string{"default", "plain"} {
+		baseMsg, err := mailgen.New().
+			Theme(theme).
+			Action("Click Here", "https://example.com").
+			Build()
+		require.NoError(t, err)
+
+		assert.Contains(
+			t,
+			baseMsg.HTML(),
+			`style="color-scheme: light dark; supported-color-schemes: light dark;"`,
+			"HTML root should include color scheme metadata style",
+		)
+
+		greenMsg, err := mailgen.New().
+			Theme(theme).
+			Action("Green", "https://example.com", mailgen.Action{Color: "#22BC66"}).
+			Build()
+		require.NoError(t, err)
+		assert.Contains(
+			t,
+			greenMsg.HTML(),
+			`class="f-fallback button button--green"`,
+			"HTML should include Postmark-compatible green button class in action link",
+		)
+
+		redMsg, err := mailgen.New().
+			Theme(theme).
+			Action("Red", "https://example.com", mailgen.Action{Color: "#FF6136"}).
+			Build()
+		require.NoError(t, err)
+		assert.Contains(
+			t,
+			redMsg.HTML(),
+			`class="f-fallback button button--red"`,
+			"HTML should include Postmark-compatible red button class in action link",
+		)
+	}
+}
+
+func TestBuilder_UsePremailer(t *testing.T) {
+	t.Run("enabled by default", func(t *testing.T) {
+		msg, err := mailgen.New().
+			Line("Hello").
+			Build()
+		require.NoError(t, err)
+
+		assert.Contains(t, msg.HTML(), `style="`, "HTML should include inline styles when premailer is enabled")
+	})
+
+	t.Run("disabled should keep template classes", func(t *testing.T) {
+		msg, err := mailgen.New().
+			UsePremailer(false).
+			Line("Hello").
+			Build()
+		require.NoError(t, err)
+
+		assert.Contains(
+			t,
+			msg.HTML(),
+			`class="email-wrapper"`,
+			"HTML should keep template classes when premailer is disabled",
+		)
+		assert.NotContains(
+			t,
+			msg.HTML(),
+			`style="height:100%;margin:0;`,
+			"HTML body should not be inlined when premailer is disabled",
+		)
+	})
+}
+
 func TestBuilder_Product(t *testing.T) {
 	testCases := []testCase{
 		{

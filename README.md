@@ -15,6 +15,7 @@
 
 - **Fluent API**: Build emails with a clean, chainable interface.
 - **Inline CSS**: Ensures compatibility across major email clients.
+- **Configurable HTML Transform**: Optionally disable automatic CSS inlining.
 - **Easy Integration**: Works effortlessly with popular Go mail libraries like go-mail.
 - **Chainable Methods**: Add content, actions, and tables in a straightforward manner.
 - **Global Configuration**: Set default base email settings and themes.
@@ -61,12 +62,13 @@ func main() {
 	)
 
 	// Build the email
-	email := mailgen.New().
-		Subject("Reset Your Password").
-		To("johndoe@mail.com").
-		Line("Click the button below to reset your password").
-		Action("Reset your password", "https://example.com/reset-password").
-		Line("If you did not request this, please ignore this email")
+email := mailgen.New().
+	Subject("Reset Your Password").
+	To("johndoe@mail.com").
+	UsePremailer(false). // optional: keep raw template HTML (no CSS inlining)
+	Line("Click the button below to reset your password").
+	Action("Reset your password", "https://example.com/reset-password").
+	Line("If you did not request this, please ignore this email")
 	message, err := email.Build()
 	if err != nil {
 		panic(err)

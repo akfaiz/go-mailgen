@@ -33,6 +33,7 @@ type Builder struct {
 
 	textDirection  string
 	theme          string
+	usePremailer   bool
 	preheader      string
 	greeting       string
 	name           string
@@ -53,6 +54,7 @@ func newDefaultBuilder() *Builder {
 	return &Builder{
 		textDirection: "ltr",
 		theme:         "default",
+		usePremailer:  true,
 		greeting:      "Hi",
 		salutation:    "Best regards",
 		product: Product{
@@ -73,6 +75,7 @@ func (b *Builder) clone() *Builder {
 		cc:             append([]string{}, b.cc...),
 		bcc:            append([]string{}, b.bcc...),
 		theme:          b.theme,
+		usePremailer:   b.usePremailer,
 		fallbackFormat: b.fallbackFormat,
 		preheader:      b.preheader,
 		greeting:       b.greeting,
@@ -205,6 +208,13 @@ func (b *Builder) Bcc(bcc string, others ...string) *Builder {
 // Supported themes are "default" and "plain".
 func (b *Builder) Theme(theme string) *Builder {
 	b.theme = theme
+	return b
+}
+
+// UsePremailer enables or disables CSS inlining via go-premailer when generating HTML.
+// The default value is true.
+func (b *Builder) UsePremailer(enabled bool) *Builder {
+	b.usePremailer = enabled
 	return b
 }
 
@@ -435,6 +445,9 @@ func (b *Builder) generateHTML() (string, error) {
 
 	if err := tmpl.ExecuteTemplate(&buf, "index.html", data); err != nil {
 		return "", err
+	}
+	if !b.usePremailer {
+		return cleanEmailHTML(buf.String()), nil
 	}
 	prem, err := premailer.NewPremailerFromBytes(buf.Bytes(), premailer.NewOptions())
 	if err != nil {

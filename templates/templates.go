@@ -30,7 +30,8 @@ var PlainHTMLTmpl = htmltemplate.Must(htmltemplate.New("index.html").
 )
 
 var htmlTemplateFuncs = htmltemplate.FuncMap{
-	"capitalize": capitalize,
+	"buttonVariantClass": buttonVariantClass,
+	"capitalize":         capitalize,
 }
 var textTemplateFuncs = texttemplate.FuncMap{
 	"boxString": boxString,
@@ -48,6 +49,17 @@ func capitalize(s string) string {
 
 func concat(a, b string) string {
 	return a + b
+}
+
+func buttonVariantClass(color string) string {
+	switch strings.ToLower(strings.TrimSpace(color)) {
+	case "#22bc66":
+		return "button--green"
+	case "#ff6136":
+		return "button--red"
+	default:
+		return ""
+	}
 }
 
 func boxString(s string) string {
